@@ -9,7 +9,17 @@ interface CanvasModule {
 }
 // --- UPDATED ---
 // Import formatContent and TemplateContext
-import { previewContent, formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
+"use client";
+import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
+
+interface CanvasModule {
+  id: string;
+  name: string;
+  position: number;
+}
+// --- UPDATED ---
+// Import formatContent and TemplateContext
+import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 
 export interface LearningMaterialsFormData {
   title: string;
