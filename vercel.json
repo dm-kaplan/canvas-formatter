@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_CANVAS_BASE_URL": "https://yourinstitution.instructure.com"
+  },
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max_old_space_size=512"
+    }
+  }
+}
