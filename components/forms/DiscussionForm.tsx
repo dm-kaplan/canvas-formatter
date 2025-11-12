@@ -1,3 +1,4 @@
+  
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
 // --- UPDATED ---
@@ -13,7 +14,6 @@ export interface DiscussionFormData {
   title: string;
   rawContent: string;
   template: TemplateType;
-  published: boolean;
   discussionTitle?: string;
   overwrite?: boolean;
   discussionId?: string;
@@ -60,7 +60,6 @@ export default function DiscussionForm({
     title: "",
     rawContent: "",
     template: "wfuDiscussion",
-    published: false,
     discussionTitle: discussionTitle,
     discussionId: discussionId,
     overwrite: false,
@@ -271,15 +270,7 @@ export default function DiscussionForm({
             - Module Dropdown
           --- */}
 
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.published}
-              onChange={e => handleChange("published", e.target.checked)}
-              className="h-4 w-4 text-canvas-blue border-gray-300 rounded"
-            />
-            <span className="ml-2 text-sm text-gray-700">Set as Published</span>
-          </label>
+          {/* Removed 'Set as Published' checkbox */}
           <div className="pt-2">
             {/* --- UPDATED --- Button text changed */}
             <button

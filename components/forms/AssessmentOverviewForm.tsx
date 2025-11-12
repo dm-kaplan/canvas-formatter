@@ -1,3 +1,4 @@
+import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
 // --- UPDATED ---
@@ -8,7 +9,6 @@ export interface AssessmentOverviewFormData {
   title: string;
   rawContent: string;
   template: TemplateType;
-  published: boolean;
   courseName?: string;
 }
 
@@ -49,7 +49,6 @@ export default function AssessmentOverviewForm({
     title: "",
     rawContent: "",
     template: "wfuAssessmentOverview",
-    published: false,
     courseName: "",
   });
   // ...existing code...
@@ -253,15 +252,7 @@ export default function AssessmentOverviewForm({
             - Module Dropdown
           --- */}
 
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.published}
-              onChange={e => handleChange("published", e.target.checked)}
-              className="h-4 w-4 text-canvas-blue border-gray-300 rounded"
-            />
-            <span className="ml-2 text-sm text-gray-700">Set as Published</span>
-          </label>
+          {/* Removed 'Set as Published' checkbox */}
           
           <div className="pt-2">
             {/* --- UPDATED --- Button text changed */}

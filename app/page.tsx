@@ -28,8 +28,8 @@ type FormType =
   | "assignment";
 
 export default function Home() {
+
   const [activeForm, setActiveForm] = useState<FormType>("config");
-  
   // Dummy props for components that might still expect them
   // You can clean these up inside the components later
   const dummyProps = {

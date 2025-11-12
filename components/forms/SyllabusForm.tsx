@@ -1,3 +1,4 @@
+import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 "use client";
 import React, { useState, useRef, useMemo, FormEvent } from "react";
 // --- UPDATED ---

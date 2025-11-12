@@ -1,3 +1,4 @@
+import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 "use client";
 import React, { useState, useRef, useMemo, FormEvent } from "react";
 // --- UPDATED ---
@@ -8,7 +9,6 @@ export interface CourseWelcomeFormData {
   title: string;
   rawContent: string;
   template: TemplateType;
-  published: boolean;
   courseName?: string;
   courseCode?: string;
   moduleTitles?: string[];
@@ -45,7 +45,6 @@ export default function CourseWelcomeForm({
     title: "",
     rawContent: "",
     template: "wfuCourseWelcome",
-    published: false,
     courseName: "",
     courseCode: "",
     moduleTitles: [],
@@ -203,15 +202,7 @@ export default function CourseWelcomeForm({
           
           {/* --- REMOVED overwrite checkbox --- */}
 
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.published}
-              onChange={e => handleChange("published", e.target.checked)}
-              className="h-4 w-4 text-canvas-blue border-gray-300 rounded"
-            />
-            <span className="ml-2 text-sm text-gray-700">Set as Published</span>
-          </label>
+          {/* Removed 'Set as Published' checkbox */}
           {/* Canvas Module (Optional) removed for Course Welcome */}
           <div className="pt-2">
             {/* --- UPDATED --- Button text changed */}

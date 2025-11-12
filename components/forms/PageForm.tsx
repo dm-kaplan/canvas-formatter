@@ -1,3 +1,4 @@
+import { type TemplateType } from "@/lib/formatters";
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
 import { previewContent, type TemplateType } from "@/lib/formatters";
@@ -5,7 +6,6 @@ import { previewContent, type TemplateType } from "@/lib/formatters";
 export interface PageFormData {
   title: string;
   rawContent: string;
-  published: boolean;
   overwritePageId?: string;
   moduleId?: string;
   canvasToken?: string;
@@ -31,7 +31,6 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
   const [formData, setFormData] = useState<PageFormData>({
     title: "",
     rawContent: "",
-    published: false,
     overwritePageId: undefined,
     moduleId: undefined,
     canvasToken: "",
@@ -182,15 +181,7 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
             <pre className="text-xs text-gray-400 bg-gray-100 rounded p-2 mt-1 max-h-40 overflow-auto">{debugInfo}</pre>
           )}
         </div>
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={formData.published}
-            onChange={e => handleChange("published", e.target.checked)}
-            className="h-4 w-4 text-canvas-blue border-gray-300 rounded"
-          />
-          <span className="ml-2 text-sm text-gray-700">Publish immediately</span>
-        </label>
+        {/* Removed 'Publish immediately' checkbox */}
         <div className="space-y-2">
           <label htmlFor="moduleId" className="block text-sm font-medium text-gray-700 mb-1">
             Canvas Module (Optional)

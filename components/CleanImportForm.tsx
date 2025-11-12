@@ -174,28 +174,7 @@ export default function CleanImportForm({
 
   // Simplified state for the assignment form
   const [assignmentTitle, setAssignmentTitle] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
-
-
   const templates = getAvailableTemplates();
-  
-  // Simplified preview logic just for assignment
-  const preview = useMemo(() => {
-    if (!formData.rawContent.trim()) return "";
-    return previewContent(formData.rawContent, "wfuAssignment", {
-      title: assignmentTitle || "Assignment Title",
-      assignmentTitle: assignmentTitle || "Assignment Title",
-      // pointsPossible: formData.pointsPossible, // Removed
-      baseUrl,
-      courseId,
-    });
-  }, [
-    formData.rawContent,
-    // formData.pointsPossible, // Removed
-    assignmentTitle,
-    baseUrl,
-    courseId,
-  ]);
 
   const handleChange = (f: keyof ImportFormData, v: any) =>
     setFormData((p) => ({ ...p, [f]: v }));
@@ -369,47 +348,24 @@ export default function CleanImportForm({
           {/* --- REMOVED "Points Possible" field --- */}
           
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div>
               <label
                 htmlFor="rawContent"
                 className="block text-sm font-medium text-gray-700"
               >
                 Assignment Content * (Markdown)
               </label>
-              <button
-                type="button"
-                onClick={() => setShowPreview((p) => !p)}
-                className="text-sm text-canvas-blue"
-              >
-                {showPreview ? "Hide" : "Show"} Preview
-              </button>
-            </div>
-            <div className={showPreview ? "grid grid-cols-2 gap-4" : ""}>
-              <div>
-                <textarea
-                  id="rawContent"
-                  ref={rawContentRef}
-                  value={formData.rawContent}
-                  onChange={(e) => handleChange("rawContent", e.target.value)}
-                  onPaste={handlePasteRawContent}
-                  rows={10}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-                  placeholder={`Paste assignment content here...`}
-                />
-              </div>
-              {showPreview && (
-                <div>
-                  <div className="text-sm text-gray-600 mb-2">Preview:</div>
-                  <div 
-                    className="border border-gray-200 rounded-md p-3 bg-gray-50 text-sm max-h-80 overflow-y-auto"
-                    // We render a plain text preview
-                    style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                  >
-                    {preview || "Preview will appear here..."}
-                  </div>
-                </div>
-              )}
+              <textarea
+                id="rawContent"
+                ref={rawContentRef}
+                value={formData.rawContent}
+                onChange={(e) => handleChange("rawContent", e.target.value)}
+                onPaste={handlePasteRawContent}
+                rows={10}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
+                placeholder={`Paste assignment content here...`}
+              />
             </div>
           </div>
 
