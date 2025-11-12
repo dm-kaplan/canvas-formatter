@@ -1,4 +1,3 @@
-import { type TemplateType } from "@/lib/formatters";
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
 import { previewContent, type TemplateType } from "@/lib/formatters";
