@@ -11,8 +11,9 @@ import LearningMaterialsForm from "@/components/forms/LearningMaterialsForm";
 import MeetFacultyForm from "@/components/forms/MeetFacultyForm";
 import ModuleForm from "@/components/forms/ModuleForm";
 import SyllabusForm from "@/components/forms/SyllabusForm";
-import CleanImportForm from "@/components/CleanImportForm";
+import AssignmentForm from "@/components/forms/AssignmentForm";
 import ConfigForm from "@/components/ConfigForm"; // Assuming this is part of the UI
+import GenericPageForm from "@/components/forms/GenericPageForm";
 
 // Define the available form types
 type FormType =
@@ -25,7 +26,8 @@ type FormType =
   | "presentation"
   | "materials"
   | "discussion"
-  | "assignment";
+  | "assignment"
+  | "page";
 
 export default function Home() {
 
@@ -59,7 +61,9 @@ export default function Home() {
       case "discussion":
         return <DiscussionForm {...dummyProps} />;
       case "assignment":
-        return <CleanImportForm {...dummyProps} importType="assignment" />;
+        return <AssignmentForm {...dummyProps} />;
+      case "page":
+        return <GenericPageForm {...dummyProps} />;
       default:
         return <ConfigForm />;
     }
@@ -102,7 +106,8 @@ export default function Home() {
             <NavButton form="presentation" label="Instructor Presentation" />
             <NavButton form="materials" label="Learning Materials" />
             <NavButton form="discussion" label="Discussion" />
-            <NavButton form="assignment" label="Generic Page" />
+            <NavButton form="assignment" label="Assignment" />
+            <NavButton form="page" label="Page" />
           </nav>
         </div>
 
