@@ -76,7 +76,7 @@ export default function Home() {
       onClick={() => setActiveForm(form)}
       className={`px-3 py-2 text-sm font-medium rounded-md ${
         activeForm === form
-          ? "bg-blue-600 text-white"
+          ? "bg-[#240F6E] text-white"
           : "text-gray-700 hover:bg-gray-200"
       }`}
     >
@@ -88,21 +88,21 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-6 md:p-12 lg:p-24">
       <div className="w-full max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          Canvas HTML Formatter
+          WFU SPS Canvas HTML Formatter
         </h1>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <nav className="flex flex-wrap gap-2 justify-center">
-            <NavButton form="config" label="Config" />
-            <NavButton form="welcome" label="Welcome" />
+            <NavButton form="config" label="Introduction" />
+            <NavButton form="welcome" label="Course Welcome" />
             <NavButton form="syllabus" label="Syllabus" />
-            <NavButton form="faculty" label="Faculty" />
-            <NavButton form="assessment" label="Assessments" />
-            <NavButton form="module" label="Module" />
-            <NavButton form="presentation" label="Presentation" />
-            <NavButton form="materials" label="Materials" />
+            <NavButton form="faculty" label="Meet the Faculty" />
+            <NavButton form="assessment" label="Assessment Overview" />
+            <NavButton form="module" label="Module Overview" />
+            <NavButton form="presentation" label="Instructor Presentation" />
+            <NavButton form="materials" label="Learning Materials" />
             <NavButton form="discussion" label="Discussion" />
-            <NavButton form="assignment" label="Assignment" />
+            <NavButton form="assignment" label="Generic Page" />
           </nav>
         </div>
 

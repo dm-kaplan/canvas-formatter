@@ -14,10 +14,10 @@ const ConfigForm: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Configuration
+        Welcome to Canvas Formatter!
       </h2>
       <div className="text-gray-700 text-base">
-        No configuration is required. Just select a template and start formatting your Canvas HTML!
+        Easily convert your course content into WFU SPS Canvas-ready HTML. Select a template, paste your material, and generate clean, formatted HTML for Canvas pages.
       </div>
     </div>
   );
