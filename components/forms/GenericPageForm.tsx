@@ -35,7 +35,7 @@ const GenericPageForm: React.FC<GenericPageFormProps> = ({ isLoading = false }) 
       moduleNumber: formData.moduleNumber,
       courseName: formData.courseName,
     };
-    const finalHtml = formatContent(formData.rawContent, "wfuGenericPage", context);
+    const finalHtml = formatContent(formData.rawContent, "wfuCourseWelcome", context);
     setGeneratedHtml(finalHtml);
     setShowModal(true);
   };
