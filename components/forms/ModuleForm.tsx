@@ -1,9 +1,6 @@
-import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 "use client";
 import React, { useState, useMemo, FormEvent, useEffect, useRef } from "react";
-// --- UPDATED ---
-// Import formatContent and TemplateContext
-import { previewContent, formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
+import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
 
 export interface ModuleFormData {
   title: string;
