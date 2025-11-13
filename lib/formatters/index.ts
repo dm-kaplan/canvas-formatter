@@ -1733,12 +1733,8 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
         </div>
     </div>
     <div class="grid-row">
-  <div class="col-xs-12 WFU-footer">
-          <div class="grid-row">
-            <div class="col-xs-12">
-                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-            </div>
-          </div>
+        <div class="col-xs-12">
+            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
         </div>
     </div>
 </div>`;
