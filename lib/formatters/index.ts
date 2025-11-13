@@ -510,18 +510,22 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
           bodyHtml += `<p>${pendingVideoTitle}</p>\n`;
           if (contextText) {
             bodyHtml += `<p>${contextText}</p>\n`;
-          }
-          // Only output embed if URL is present
-          if (ytMatch) {
-            const id = ytMatch[1];
-            let siParam = '';
-            try { const u = new URL(line); const si = u.searchParams.get('si'); if (si) siParam = `?si=${encodeURIComponent(si)}`; } catch {}
-            const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${id}${siParam}\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>`;
-            bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
-          } else if (tedMatch) {
-            const slug = tedMatch[1];
-            const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://embed.ted.com/talks/${slug}\" title=\"TED Talk\" frameborder=\"0\" scrolling=\"no\" allowfullscreen></iframe>`;
-            bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            // Do NOT output placeholder if context is present
+          } else {
+            // Only output embed if URL is present
+            if (ytMatch) {
+              const id = ytMatch[1];
+              let siParam = '';
+              try { const u = new URL(line); const si = u.searchParams.get('si'); if (si) siParam = `?si=${encodeURIComponent(si)}`; } catch {}
+              const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${id}${siParam}\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>`;
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            } else if (tedMatch) {
+              const slug = tedMatch[1];
+              const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://embed.ted.com/talks/${slug}\" title=\"TED Talk\" frameborder=\"0\" scrolling=\"no\" allowfullscreen></iframe>`;
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            } else {
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
+            }
           }
           pendingVideoTitle = null;
         } else {
@@ -530,17 +534,21 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
           }
           if (contextText) {
             bodyHtml += `<p>${contextText}</p>\n`;
-          }
-          if (ytMatch) {
-            const id = ytMatch[1];
-            let siParam = '';
-            try { const u = new URL(line); const si = u.searchParams.get('si'); if (si) siParam = `?si=${encodeURIComponent(si)}`; } catch {}
-            const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${id}${siParam}\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>`;
-            bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
-          } else if (tedMatch) {
-            const slug = tedMatch[1];
-            const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://embed.ted.com/talks/${slug}\" title=\"TED Talk\" frameborder=\"0\" scrolling=\"no\" allowfullscreen></iframe>`;
-            bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            // Do NOT output placeholder if context is present
+          } else {
+            if (ytMatch) {
+              const id = ytMatch[1];
+              let siParam = '';
+              try { const u = new URL(line); const si = u.searchParams.get('si'); if (si) siParam = `?si=${encodeURIComponent(si)}`; } catch {}
+              const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${id}${siParam}\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>`;
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            } else if (tedMatch) {
+              const slug = tedMatch[1];
+              const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://embed.ted.com/talks/${slug}\" title=\"TED Talk\" frameborder=\"0\" scrolling=\"no\" allowfullscreen></iframe>`;
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
+            } else {
+              bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
+            }
           }
         }
         continue;
