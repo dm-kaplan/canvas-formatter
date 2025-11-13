@@ -396,7 +396,9 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
   let inTextbookReadings = false;
   let readingsIndentStack: number[] = [];
 
+  let lastLineWasTitleWithoutUrl = false;
   for (let i = 0; i < lines.length; i++) {
+    lastLineWasTitleWithoutUrl = false;
     const raw = lines[i];
     const line = raw.trim();
 
