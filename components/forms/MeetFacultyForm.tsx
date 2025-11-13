@@ -198,6 +198,23 @@ export default function MeetFacultyForm({
           Format Meet the Lead Faculty
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label htmlFor="courseId" className="block text-sm font-medium text-gray-700 mb-1">
+                        Course ID *
+                      </label>
+                      <input
+                        id="courseId"
+                        type="text"
+                        value={formData.courseId || ""}
+                        onChange={e => handleChange("courseId", e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
+                        placeholder="e.g. 77055"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Go to your Canvas course and copy the number from the end of the URL.
+                      </p>
+                    </div>
           <div>
             <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
               Course Name *
