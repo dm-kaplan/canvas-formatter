@@ -466,10 +466,21 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // Skip lines that are just markdown characters (e.g. "____")
     if (/^[\*_]+$/.test(line)) continue;
 
-    // --- FIX 3: Updated isBulletLine REGEX ---
-    // A line is a bullet if it starts with -, •, * or a number, AND is followed by a space
-    // OR if it starts with **Exercise:** (or variations)
-    const isBulletLine = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw) || /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+    // --- UPDATED LOGIC ---
+    // An H4 is a non-bullet, non-url, non-exercise line ending in a colon.
+    // Check for this *before* checking for bullets.
+    const isPotentiallyGenericH4 = !/https?:\/\//.test(line) && 
+                                 /.+:\s*$/.test(line) &&
+                                 !/^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+
+    // A line is a bullet if it starts with a bullet marker AND is not an H4
+    // OR if it's the special "Exercise:" line.
+    const isBulletLine = (!isPotentiallyGenericH4 && /^\s*([-•\*]|\d+[\.)])\s+/.test(raw)) || 
+                         /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+    
+    const isGenericH4 = isPotentiallyGenericH4 && !isBulletLine;
+    // --- END UPDATED LOGIC ---
+
 
     // --- 1. HEADING DETECTION ---
 
@@ -485,13 +496,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     }
 
     // Check H4 (e.g., "Readings:", "Videos:", "Experimenting with an LLM:")
-    // An H4 is a line that is NOT a bullet, AND matches a known H4 name,
-    // OR is non-bullet, non-url, and ends with a colon.
-    const isGenericH4 = !isBulletLine && 
-                        !/https?:\/\//.test(line) && 
-                        /.+:\s*$/.test(line);
-                        
-    // Use the new robust regex for h4Names
+    // Use the new isGenericH4 flag
     if (h4Names.some(re => isSection(line, re)) || isGenericH4) {
       closeList();
       flushPendingVideo();
@@ -612,6 +617,23 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       // This will now catch "**Exercise:**" as cleanLine will be "**Exercise:** Ask..."
       let content = autolink(cleanLine).replace(/^(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i, '<strong>Exercise:</strong>');
       
+      // --- NEW FIX: Convert markdown bold/italic ---
+      const exercisePrefix = '<strong>Exercise:</strong>';
+      if (content.startsWith(exercisePrefix)) {
+          // For exercise line, convert markdown *after* the strong tag
+          let rest = content.substring(exercisePrefix.length);
+          rest = rest
+              .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  // **bold**
+              .replace(/\*([^*]+)\*/g, '<em>$1</em>');             // *italic*
+          content = exercisePrefix + rest;
+      } else {
+           // For all other lines, convert markdown
+           content = content
+              .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')  // **bold**
+              .replace(/\*([^\*]+)\*/g, '<em>$1</em>');             // *italic*
+      }
+      // --- END NEW FIX ---
+
       // Handle "Title URL" pattern
       const patWithDesc = /^(.*?)\s+(https?:\/\/\S+):(.*)$/; // Title URL: Desc
       const patSimple = /^(.*?)\s+(https?:\/\/\S+)\s*$/;  // Title URL
