@@ -14,7 +14,6 @@ export interface InstructorPresentationFormData {
   title: string;
   rawContent: string;
   template: TemplateType;
-  moduleNumber?: string;
   courseName?: string;
   videoTitle?: string;
 }
@@ -45,7 +44,6 @@ export default function InstructorPresentationForm({
     title: "",
     rawContent: "",
     template: "wfuInstructorPresentation",
-    moduleNumber: "1",
     courseName: "",
     videoTitle: "",
   });
@@ -79,18 +77,30 @@ export default function InstructorPresentationForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    // 1. Build the context for the formatter
-    const context: TemplateContext = {
-      ...formData,
-      title: `${formData.moduleNumber || "1"}.1 Instructor Presentation: ${formData.videoTitle || "Video Title"}`,
-      baseUrl,
-      courseId,
-    };
-
-    // 2. Generate the final HTML
-    const finalHtml = formatContent(formData.rawContent, "wfuInstructorPresentation", context);
-    
-    // 3. Show the modal
+    // Use static template as requested
+    const courseName = formData.courseName || "";
+    const videoTitle = formData.videoTitle || "Text";
+    const videoSummary = formData.rawContent || "Insert paragraph description of video content. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+    const finalHtml = `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
+        <p class=\"WFU-SubpageHeader\"><span>${courseName}</span></p>
+        <h2 class=\"WFU-SubpageSubheader\">Instructor Presentation: ${videoTitle}</h2>
+        <br />
+        <p>${videoSummary}</p>
+        <div class=\"WFU-Container-LectureMedia\">
+          <div class=\"VideoPlayer\">
+            <p>HERE</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12\">
+        <footer class=\"WFU-footer\">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
+    </div>
+  </div>`;
     setGeneratedHtml(finalHtml);
     setShowModal(true);
   };
@@ -106,24 +116,6 @@ export default function InstructorPresentationForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="moduleNumber" className="block text-sm font-medium text-gray-700 mb-1">
-            Module Number *
-          </label>
-          <select
-            id="moduleNumber"
-            value={formData.moduleNumber}
-            onChange={(e) => handleChange("moduleNumber", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-          >
-            {Array.from({ length: 16 }).map((_, i) => (
-              <option key={i + 1} value={String(i + 1)}>
-                Module {i + 1}
-              </option>
-            ))}
-          </select>
-        </div>
         <div>
           <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
             Course Name *
