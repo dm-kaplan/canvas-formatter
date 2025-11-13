@@ -403,7 +403,9 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
    * Manages <ul> tags based on line indentation.
    */
   const handleIndent = (raw: string) => {
-    const indent = raw.match(/^\s*/)?.[0].length || 0;
+    // --- NEW LOGIC ---
+    const isExerciseLine = /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+    let indent = raw.match(/^\s*/)?.[0].length || 0;
     
     // This is the first item in a new list
     if (!inList) {
@@ -414,6 +416,14 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     }
 
     const currentIndent = indentStack[indentStack.length - 1];
+
+    // --- NEW LOGIC ---
+    // If this is the Exercise line and it's less indented than the
+    // current level, force it to *be* at the current level.
+    if (isExerciseLine && indent < currentIndent) {
+        indent = currentIndent;
+    }
+    // --- END NEW LOGIC ---
 
     if (indent > currentIndent) {
       // Open new nested level
@@ -466,20 +476,21 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // Skip lines that are just markdown characters (e.g. "____")
     if (/^[\*_]+$/.test(line)) continue;
 
-    // --- UPDATED LOGIC ---
-    // An H4 is a non-bullet, non-url, non-exercise line ending in a colon.
-    // Check for this *before* checking for bullets.
-    const isPotentiallyGenericH4 = !/https?:\/\//.test(line) && 
-                                 /.+:\s*$/.test(line) &&
-                                 !/^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
-
-    // A line is a bullet if it starts with a bullet marker AND is not an H4
-    // OR if it's the special "Exercise:" line.
-    const isBulletLine = (!isPotentiallyGenericH4 && /^\s*([-•\*]|\d+[\.)])\s+/.test(raw)) || 
-                         /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+    // --- NEW LOGIC V3 ---
+    // A line is a bullet if it's the special "Exercise:" line
+    const isExerciseLine = /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
     
-    const isGenericH4 = isPotentiallyGenericH4 && !isBulletLine;
-    // --- END UPDATED LOGIC ---
+    // A line is a bullet if it starts with a bullet marker
+    const isStandardBullet = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw);
+
+    // A line is a bullet if it's either
+    const isBulletLine = isExerciseLine || isStandardBullet;
+
+    // An H4 is a line that is NOT a bullet, AND ends with a colon, AND is not a URL
+    const isGenericH4 = !isBulletLine && 
+                        !/https?:\/\//.test(line) && 
+                        /.+:\s*$/.test(line);
+    // --- END NEW LOGIC V3 ---
 
 
     // --- 1. HEADING DETECTION ---
