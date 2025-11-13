@@ -1857,26 +1857,26 @@ function formatWFUCourseSyllabus(content: string, context: TemplateContext = {})
     const syllabusFileName = 'CYB 720 Syllabus.docx';
     const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
 
-    return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
-    <div class=\"grid-row\">
-      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
-        <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
-          <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
+      return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
+      <div class=\"grid-row\">
+        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
+          <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
+            <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class=\"grid-row\">
-      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
-        <p class=\"WFU-SubpageHeader\">${courseName}</p>
-        <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
-        <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${emailLink}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
-        <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName} (Insert file to download)</p>
+      <div class=\"grid-row\">
+        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
+          <p class=\"WFU-SubpageHeader\">${courseName}</p>
+          <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
+          <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${emailLink}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
+          <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
+        </div>
       </div>
-    </div>
-    <div class=\"grid-row\">
-      <div class=\"col-xs-12\">&nbsp;</div>
-    </div>
-  </div>`;
+      <div class=\"grid-row\">
+        <div class=\"col-xs-12\">&nbsp;</div>
+      </div>
+    </div>`;
 }
 
 /**
