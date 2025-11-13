@@ -368,7 +368,6 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
   const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
   const isSection = (s: string, re: RegExp) => re.test(s.trim());
   
-  // --- UPDATED H3 REGEX to allow leading asterisks ---
   const h3Names = [/^(\*\*|__)*Required\s+Resources(\*\*|__)*\s*:?\s*$/i, /^(\*\*|__)*Optional\s+Resources(\*\*|__)*\s*:?\s*$/i];
   const h4Names = [
     /^(\*\*|__)*Reading(?:s)?(\*\*|__)*\s*:?\s*$/i, 
@@ -458,7 +457,9 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     const raw = lines[i];
     const line = raw.trim();
 
-    if (!line || /^[_*]+$/.test(line)) continue; // Skip empty lines
+    if (!line) continue; // Skip empty lines
+    // Skip lines that are just markdown characters (e.g. "____")
+    if (/^[\*_]+$/.test(line)) continue;
 
     // --- UPDATED isBulletLine REGEX ---
     // A line is a bullet if it starts with -, •, * or a number, AND is followed by a space.
@@ -1546,7 +1547,9 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
       // Always use specialized renderer to ensure correct grouping
       body += renderInstructions(s.lines);
     } else {
-      body += renderLines(s.Services);
+      // --- THIS IS THE FIX ---
+      body += renderLines(s.lines); 
+      // --- END FIX ---
       if (s.subsections.length) {
         for (const sub of s.subsections) {
           body += `\n<h4>${sub.heading}</h4>\n${renderLines(sub.lines)}`;
@@ -1794,7 +1797,7 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
             <h3><a title="Getting Started" href="https://wakeforest.instructure.com/courses/77445/modules/258868">Module</a></h3>
           </div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 1" href="https://wakeforest.instructure.com/courses/77445/modules/258871?wrap=1">Module 1: Foundations of Organizational Resilience and Risk Strategy</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 2" href="https://wakeforest.instructure.com/courses/77445/modules/258872?wrap=1">Module 2: Incident Detection and Executive Response Leadership</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 2" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258872?wrap=1">Module 2: Incident Detection and Executive Response Leadership</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 3" href="https://wakeforest.instructure.com/courses/77445/modules/258873?wrap=1">Module 3: Crisis Communication and Stakeholder Coordination</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 4" href="https://wakeforest.instructure.com/courses/77445/modules/258874?wrap=1">Module 4: Business Continuity Planning and Operational Recovery</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 5" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258875?wrap=1">Module 5: AI, Automation, and the Future of Incident Management</a></div>
