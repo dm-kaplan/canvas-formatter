@@ -368,8 +368,8 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
   const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
   const isSection = (s: string, re: RegExp) => re.test(s.trim());
   
+  // --- UPDATED H3 REGEX to allow leading asterisks ---
   const h3Names = [/^(\*\*|__)*Required\s+Resources(\*\*|__)*\s*:?\s*$/i, /^(\*\*|__)*Optional\s+Resources(\*\*|__)*\s*:?\s*$/i];
-  // --- UPDATED H4 REGEXES ---
   const h4Names = [
     /^(\*\*|__)*Reading(?:s)?(\*\*|__)*\s*:?\s*$/i, 
     /^(\*\*|__)*Video(?:s)?(\*\*|__)*\s*:?\s*$/i, 
@@ -460,7 +460,10 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
     if (!line || /^[_*]+$/.test(line)) continue; // Skip empty lines
 
-    const isBulletLine = /^\s*[-•\*]/.test(raw) || /^\s*\d+[\.)]/.test(raw);
+    // --- UPDATED isBulletLine REGEX ---
+    // A line is a bullet if it starts with -, •, * or a number, AND is followed by a space.
+    // This prevents `**Bold**` from being treated as a bullet.
+    const isBulletLine = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw);
 
     // --- 1. HEADING DETECTION ---
 
@@ -590,7 +593,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
       // It's a bullet. Handle indentation.
       handleIndent(raw);
-      const cleanLine = line.replace(/^[-•\*]\s*/, '');
+      const cleanLine = line.replace(/^[-•\*]\s*/, '').replace(/^\d+[\.)]\s+/, '');
 
       // Special formatting for bolded "Exercise:"
       let content = autolink(cleanLine).replace(/^(\*\*|__)Exercise:(\*\*|__)/i, '<strong>Exercise:</strong>');
@@ -1543,7 +1546,7 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
       // Always use specialized renderer to ensure correct grouping
       body += renderInstructions(s.lines);
     } else {
-      body += renderLines(s.lines);
+      body += renderLines(s.Services);
       if (s.subsections.length) {
         for (const sub of s.subsections) {
           body += `\n<h4>${sub.heading}</h4>\n${renderLines(sub.lines)}`;
