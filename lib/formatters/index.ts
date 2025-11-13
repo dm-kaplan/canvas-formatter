@@ -499,16 +499,27 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
         const urlStart = ytMatch ? ytMatch.index : tedMatch!.index;
         // Strip list bullets from title
         const title = urlStart && urlStart > 0 ? line.substring(0, urlStart).trim().replace(/^[-•\*]\s*/, '') : null;
-        
+        // Check if next line is indented (context)
+        let contextText = '';
+        if (lines[i+1] && /^\s*-/.test(lines[i+1])) {
+          contextText = lines[i+1].replace(/^\s*-\s*/, '').trim();
+          i++;
+        }
         // Output any pending title first
         if (pendingVideoTitle) {
           bodyHtml += `<p>${pendingVideoTitle}</p>\n`;
+          if (contextText) {
+            bodyHtml += `<p>${contextText}</p>\n`;
+          }
           bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
           pendingVideoTitle = null;
         }
         // Output the current video title (if extracted from this line)
         if (title) {
           bodyHtml += `<p>${title}</p>\n`;
+        }
+        if (contextText) {
+          bodyHtml += `<p>${contextText}</p>\n`;
         }
         // Create and output the embed
         if (ytMatch) {
@@ -557,15 +568,17 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       if (m) {
         const title = m[1].trim();
         const url = m[2].trim();
-        // Handle "Title URL: Context"
-        const titleContextMatch = title.match(/^(.*?):(.*)$/);
-        if (titleContextMatch) {
-          const mainTitle = titleContextMatch[1].trim();
-          const contextText = titleContextMatch[2].trim();
-           bodyHtml += `<li><a href="${url}" target="_blank" rel="noopener">${mainTitle}</a>: ${contextText}</li>\n`;
-        } else {
-          bodyHtml += `<li><a href="${url}" target="_blank" rel="noopener">${title || url}</a></li>\n`;
+        // Check if next line is indented (context)
+        let contextText = '';
+        if (lines[i+1] && /^\s*-/.test(lines[i+1])) {
+          contextText = lines[i+1].replace(/^\s*-\s*/, '').trim();
+          i++;
         }
+        bodyHtml += `<li><a href="${url}" target="_blank" rel="noopener">${title || url}</a>`;
+        if (contextText) {
+          bodyHtml += `<ul><li>${contextText}</li></ul>`;
+        }
+        bodyHtml += `</li>\n`;
       } else {
         bodyHtml += `<li>${autolink(cleanLine)}</li>\n`;
       }
