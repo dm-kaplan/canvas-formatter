@@ -1849,41 +1849,34 @@ function normalizeCanvasFileUrl(url: string, baseUrl?: string, courseId?: string
  */
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
 
-  const courseName = context.courseName || 'Emerging Tools and Technologies in AI';
-  const instructorName = context.instructorName || 'First Name, last name, Title (PhD), (Position) Teaching Professor';
-  const instructorEmail = context.instructorEmail || 'email@wfu.edu';
-  const syllabusFileName = context.syllabusFileName || 'AIN Emerging Tools and Technologies in AI Syllabus.docx';
-  const syllabusFileUrl = context.syllabusFileUrl || '';
-  const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
-  const normalizedUrl = syllabusFileUrl
-    ? normalizeCanvasFileUrl(syllabusFileUrl, context.baseUrl, context.courseId)
-    : '';
-  const downloadSegment = normalizedUrl
-    ? `<strong>Course Syllabus:&nbsp;</strong><a href=\"${normalizedUrl}\" class=\"instructure_file_link instructure_scribd_file\" title=\"${syllabusFileName}\">${syllabusFileName}</a>`
-    : `<strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}`;
 
-  return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
+    // Hardcoded values per user request
+    const courseName = 'Incident Management and Business Continuity';
+    const instructorName = 'Stephen Boyce';
+    const instructorEmail = 'boyces@wfu.edu';
+    const syllabusFileName = 'CYB 720 Syllabus.docx';
+    const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
+
+    return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
     <div class=\"grid-row\">
-        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
-            <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
-                <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
-            </div>
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
+        <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
+          <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
         </div>
+      </div>
     </div>
     <div class=\"grid-row\">
-        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
-            <p class=\"WFU-SubpageHeader\">${courseName}</p>
-            <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
-            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>&nbsp;${emailLink}<strong> [make this a link]<br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
-            <p>${downloadSegment} (Insert file to download)</p>
-        </div>
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
+        <p class=\"WFU-SubpageHeader\">${courseName}</p>
+        <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
+        <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${emailLink}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
+        <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName} (Insert file to download)</p>
+      </div>
     </div>
     <div class=\"grid-row\">
-        <div class=\"col-xs-12\">
-            <footer class=\"WFU-footer\">&nbsp;</footer>
-        </div>
+      <div class=\"col-xs-12\">&nbsp;</div>
     </div>
-</div>`;
+  </div>`;
 }
 
 /**
