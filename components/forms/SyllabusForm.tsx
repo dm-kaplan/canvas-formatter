@@ -8,9 +8,8 @@ export interface SyllabusFormData {
   template: TemplateType;
   published: boolean;
   courseName?: string;
-  courseCode?: string;
   instructorName?: string;
-  instructorCredentials?: string;
+  instructorCredentials: string;
   instructorEmail?: string;
   syllabusFileName?: string;
   syllabusFileUrl?: string; // This can be a Canvas file URL
@@ -38,7 +37,7 @@ export default function SyllabusForm({
     template: "wfuCourseSyllabus",
     published: false,
     courseName: "",
-    courseCode: "",
+    // courseCode removed
     instructorName: "",
     instructorCredentials: "",
     instructorEmail: "",
@@ -65,6 +64,7 @@ export default function SyllabusForm({
       title: "Syllabus",
       baseUrl,
       courseId,
+      instructorCredentials: formData.instructorCredentials + ', Adjunct Professor of Practice',
     };
 
     // 2. Generate the final HTML
@@ -118,19 +118,6 @@ export default function SyllabusForm({
                 placeholder="Foundations of Disruptive Innovation"
               />
             </div>
-            <div>
-              <label htmlFor="courseCodeCS" className="block text-sm font-medium text-gray-700 mb-1">
-                Course Code (optional)
-              </label>
-              <input
-                id="courseCodeCS"
-                type="text"
-                value={formData.courseCode}
-                onChange={(e) => handleChange("courseCode", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-                placeholder="CYB 720"
-              />
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="instructorName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -148,13 +135,14 @@ export default function SyllabusForm({
               </div>
               <div>
                 <label htmlFor="instructorCredentials" className="block text-sm font-medium text-gray-700 mb-1">
-                  Instructor Credentials (optional)
+                  Instructor Credentials *
                 </label>
                 <input
                   id="instructorCredentials"
                   type="text"
                   value={formData.instructorCredentials}
                   onChange={(e) => handleChange("instructorCredentials", e.target.value)}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
                   placeholder="PhD, MBA"
                 />
