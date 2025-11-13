@@ -1850,12 +1850,13 @@ function normalizeCanvasFileUrl(url: string, baseUrl?: string, courseId?: string
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
 
 
-    // Hardcoded values per user request
-    const courseName = 'Incident Management and Business Continuity';
-    const instructorName = 'Stephen Boyce';
-    const instructorEmail = 'boyces@wfu.edu';
-    const syllabusFileName = 'CYB 720 Syllabus.docx';
-    const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
+      // Updated values per latest user request
+      const courseName = 'Emerging Tools and Technologies in AI';
+      const instructorName = 'Name';
+      const instructorCredentials = 'Title (PhD)';
+      const instructorEmail = 'email@wfu.edu';
+      const syllabusFileName = 'AIN Emerging Tools and Technologies in AI Syllabus.docx';
+      const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
 
       return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
       <div class=\"grid-row\">
@@ -1869,12 +1870,14 @@ function formatWFUCourseSyllabus(content: string, context: TemplateContext = {})
         <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
           <p class=\"WFU-SubpageHeader\">${courseName}</p>
           <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
-          <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${emailLink}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
+          <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName}, ${instructorCredentials}, Adjunct Professor of Practice<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${emailLink}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
           <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
         </div>
       </div>
       <div class=\"grid-row\">
-        <div class=\"col-xs-12\">&nbsp;</div>
+        <div class=\"col-xs-12\">
+          <footer class=\"WFU-footer\">&nbsp;</footer>
+        </div>
       </div>
     </div>`;
 }
