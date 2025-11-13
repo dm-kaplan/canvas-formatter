@@ -11,7 +11,7 @@ export interface SyllabusFormData {
   instructorName?: string;
   instructorCredentials: string;
   instructorEmail?: string;
-  syllabusFileName?: string;
+  syllabusFileName: string;
   syllabusFileUrl?: string; // This can be a Canvas file URL
 }
 
@@ -164,13 +164,14 @@ export default function SyllabusForm({
             </div>
             <div>
               <label htmlFor="syllabusFileName" className="block text-sm font-medium text-gray-700 mb-1">
-                Syllabus File Name (optional)
+                Syllabus File Name *
               </label>
               <input
                 id="syllabusFileName"
                 type="text"
                 value={formData.syllabusFileName}
                 onChange={(e) => handleChange("syllabusFileName", e.target.value)}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
                 placeholder="Course Syllabus.docx"
               />
