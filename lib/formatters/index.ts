@@ -511,7 +511,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
           if (contextText) {
             bodyHtml += `<p>${contextText}</p>\n`;
           }
-          // Always output embed or placeholder after title/context
+          // Always output embed or placeholder after title/context, but only once
           if (ytMatch) {
             const id = ytMatch[1];
             let siParam = '';
@@ -533,7 +533,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
           if (contextText) {
             bodyHtml += `<p>${contextText}</p>\n`;
           }
-          // Always output embed or placeholder after title/context
+          // Always output embed or placeholder after title/context, but only once
           if (ytMatch) {
             const id = ytMatch[1];
             let siParam = '';
