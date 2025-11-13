@@ -6,9 +6,10 @@ export interface MeetFacultyFormData {
   title: string;
   rawContent: string;
   template: TemplateType;
-  courseName?: string;
-  facultyName?: string;
-  facultyImageNumber?: string;
+    courseName?: string;
+    courseId?: string;
+    facultyName?: string;
+    facultyImageNumber?: string;
 }
 
 interface CanvasModule {
@@ -43,6 +44,7 @@ export default function MeetFacultyForm({
     rawContent: "",
     template: "wfuMeetFaculty",
     courseName: "",
+    courseId: "",
     facultyName: "",
     facultyImageNumber: "",
   });
@@ -163,12 +165,12 @@ export default function MeetFacultyForm({
     e.preventDefault();
     
     // 1. Build the context for the formatter
-    const context: TemplateContext = {
-      ...formData,
-      title: `Meet the Lead Faculty`,
-      baseUrl,
-      courseId,
-    };
+      const context: TemplateContext = {
+        ...formData,
+        title: `Meet the Lead Faculty`,
+        baseUrl,
+        courseId: formData.courseId,
+      };
     
     // 2. Generate the final HTML
     const finalHtml = formatContent(formData.rawContent, "wfuMeetFaculty", context);
