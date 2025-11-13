@@ -368,16 +368,17 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
   const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
   const isSection = (s: string, re: RegExp) => re.test(s.trim());
   
-  const h3Names = [/^(\*\*|__)*Required\s+Resources:?(\*\*|__)*$/i, /^(\*\*|__)*Optional\s+Resources:?(\*\*|__)*$/i];
+  const h3Names = [/^(\*\*|__)*Required\s+Resources(\*\*|__)*\s*:?\s*$/i, /^(\*\*|__)*Optional\s+Resources(\*\*|__)*\s*:?\s*$/i];
+  // --- UPDATED H4 REGEXES ---
   const h4Names = [
-    /^(\*\*|__)*Reading(?:s)?:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Video(?:s)?:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Articles:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Podcasts:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Tools:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Websites:?(\*\*|__)*$/i, 
-    /^(\*\*|__)*Case\s+Studies:?(\*\*|__)*$/i,
-    /^(\*\*|__)*Textbook Readings:?(\*\*|__)*$/i
+    /^(\*\*|__)*Reading(?:s)?(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Video(?:s)?(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Articles(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Podcasts(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Tools(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Websites(\*\*|__)*\s*:?\s*$/i, 
+    /^(\*\*|__)*Case\s+Studies(\*\*|__)*\s*:?\s*$/i,
+    /^(\*\*|__)*Textbook Readings(\*\*|__)*\s*:?\s*$/i
   ];
   
   const youtubeRe = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
@@ -475,11 +476,10 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
     // Check H4 (e.g., "Readings:", "Videos:", "Experimenting with an LLM:")
     // An H4 is a line that is NOT a bullet, AND matches a known H4 name,
-    // OR is bold/plain and ends with a colon (and not a URL).
-    const isGenericH4 = !isBulletLine && (
-                          /^(\*\*|__)[^:]+?:(\*\*|__)\s*$/.test(line) || // **Title:**
-                          (!/https?:\/\//.test(line) && /.+:\s*$/.test(line)) // Title:
-                        );
+    // OR is non-bullet, non-url, and ends with a colon.
+    const isGenericH4 = !isBulletLine && 
+                        !/https?:\/\//.test(line) && 
+                        /.+:\s*$/.test(line);
                         
     if (h4Names.some(re => isSection(line, re)) || isGenericH4) {
       closeList();
@@ -514,7 +514,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       if (ytMatch || tedMatch) {
         flushPendingVideo(); // Flush any previous title
         
-        // --- FIX: Add nullish coalescing to fix type error ---
+        // --- VERCEL BUILD FIX ---
         const urlStart = (ytMatch ? ytMatch.index : tedMatch!.index) ?? 0;
         const title = urlStart > 0 ? line.substring(0, urlStart).trim().replace(/^[-•\*]\s*/, '') : null;
         
@@ -1795,9 +1795,9 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 3" href="https://wakeforest.instructure.com/courses/77445/modules/258873?wrap=1">Module 3: Crisis Communication and Stakeholder Coordination</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 4" href="https://wakeforest.instructure.com/courses/77445/modules/258874?wrap=1">Module 4: Business Continuity Planning and Operational Recovery</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 5" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258875?wrap=1">Module 5: AI, Automation, and the Future of Incident Management</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 6" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258876?wrap=1">Module 6: Regulatory Compliance and Global Standards in Resilience</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 7" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258877?wrap=1">Module 7: Ethics, Governance, and Executive Accountability</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 8" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258878?wrap=1">Module 8: Reflection, Lessons Learned, and Capstone Simulation</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 6" href="https://wakeforest.instructure.com/courses/77445/modules/258876?wrap=1">Module 6: Regulatory Compliance and Global Standards in Resilience</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 7" href="https://wakeforest.instructure.com/courses/77445/modules/258877?wrap=1">Module 7: Ethics, Governance, and Executive Accountability</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 8" href="https://wakeforest.instructure.com/courses/77445/modules/258878?wrap=1">Module 8: Reflection, Lessons Learned, and Capstone Simulation</a></div>
         </div>
       </div>
       <div class="grid-row">
