@@ -522,7 +522,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
             const slug = tedMatch[1];
             const iframe = `<iframe width=\"560\" height=\"315\" src=\"https://embed.ted.com/talks/${slug}\" title=\"TED Talk\" frameborder=\"0\" scrolling=\"no\" allowfullscreen></iframe>`;
             bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>${iframe}</p>\n                </div>\n            </div>\n`;
-          } else {
+          } else if (!contextText) {
             bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
           }
           pendingVideoTitle = null;
