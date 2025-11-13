@@ -62,7 +62,8 @@ function sanitizeHtml(html: string): string {
       'table', 'thead', 'tbody', 'tr', 'th', 'td',
       'blockquote', 'pre', 'code',
       'hr',
-      'iframe'
+      'iframe',
+      'footer'
     ],
     ALLOWED_ATTR: [
       'href', 'src', 'alt', 'title', 'target', 'referrerpolicy', 'scrolling',
@@ -345,7 +346,7 @@ function formatWFUModule(content: string, context: TemplateContext = {}): string
             </ul>
         <div class="grid-row">
             <div class="col-xs-12">
-                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
             </div>
         </div>
         </div>
@@ -646,7 +647,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     </div>
     <div class="grid-row">
         <div class="col-xs-12">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
         </div>
     </div>
     </div>
@@ -1598,7 +1599,7 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
     </div>
     <div class="grid-row">
         <div class="col-xs-12">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
         </div>
     </div>
     </div>
@@ -1735,7 +1736,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
   <div class="col-xs-12 WFU-footer">
           <div class="grid-row">
             <div class="col-xs-12">
-              <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
             </div>
           </div>
         </div>
