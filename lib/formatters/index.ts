@@ -1780,48 +1780,51 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
   const plainContent = (content || '').replace(/<[^>]*>/g, '');
 
   return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-      <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-        <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
-      </div>
-    </div>
     <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <p class="WFU-SubpageHeader">${courseName}</p>
-        <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
-        <h3>Introduction to ${courseCode} ${courseName}</h3>
-    <p>${plainContent}</p>
-        <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
-        <ul>
-          <li>Getting Started&nbsp;</li>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
+        </div>
+        <div class="grid-row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <p class="WFU-SubpageHeader">Incident Management and Business Continuity</p>
+                <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+                <h3>Introduction to CYB 720 Incident Management and Business Continuity</h3>
+                <p>This course provides a comprehensive exploration of strategies and practices essential for responding to cybersecurity incidents and ensuring business continuity. Students will learn to plan, test, and execute incident management and disaster recovery strategies, including conducting Business Impact Analysis (BIA) to prioritize responses. The course emphasizes the importance of exercises to test preparedness plans and enhance cyber resiliency. Topics include incident detection and response, crisis communication, ethics, coordination of recovery efforts, and the integration of cybersecurity measures into business continuity plans.</p>
+                <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
+                <ul>
+                    <li>Getting Started&nbsp;</li>
                     <ul>
-            <li>An introduction to the course instructor&nbsp;</li>
-            <li>An overview of assessments</li>
-            <li>Other important information about the course&nbsp;&nbsp;</li>
+                        <li>An introduction to the course instructor&nbsp;</li>
+                        <li>An overview of assessments</li>
+                        <li>Other important information about the course&nbsp;&nbsp;</li>
                     </ul>
-          <li>Tools for Success</li>
+                    <li>Tools for Success</li>
                     <ul>
-            <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
+                        <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
                     </ul>
-          <li>Opportunities for Engagement</li>
+                    <li>Opportunities for Engagement</li>
                     <ul>
-            <li>Ways to engage with your peers, instructors, and the university</li>
+                        <li>Ways to engage with your peers, instructors, and the university</li>
                     </ul>
                 </ul>
-        <h3><a title="Getting Started" href="${baseUrl}/courses/${courseId}/modules/258868" data-api-endpoint="${baseUrl}/api/v1/courses/${courseId}/modules/258868" data-api-returntype="Module">Module</a></h3>
+                <h3><a title="Getting Started" href="https://wakeforest.instructure.com/courses/77445/modules/258868" data-api-endpoint="https://wakeforest.instructure.com/api/v1/courses/77445/modules/258868" data-api-returntype="Module">Module</a></h3>
             </div>
-            ${moduleLinks}
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 1" href="https://wakeforest.instructure.com/courses/77445/modules/258871?wrap=1">Module 1: Foundations of Organizational Resilience and Risk Strategy</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 2" href="https://wakeforest.instructure.com/courses/77445/modules/258872?wrap=1">Module 2: Incident Detection and Executive Response Leadership</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 3" href="https://wakeforest.instructure.com/courses/77445/modules/258873?wrap=1">Module 3: Crisis Communication and Stakeholder Coordination</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 4" href="https://wakeforest.instructure.com/courses/77445/modules/258874?wrap=1">Module 4: Business Continuity Planning and Operational Recovery</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 5" href="https://wakeforest.instructure.com/courses/77445/modules/258875?wrap=1">Module 5: AI, Automation, and the Future of Incident Management</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 6" href="https://wakeforest.instructure.com/courses/77445/modules/258876?wrap=1">Module 6: Regulatory Compliance and Global Standards in Resilience</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 7" href="https://wakeforest.instructure.com/courses/77445/modules/258877?wrap=1">Module 7: Ethics, Governance, and Executive Accountability</a></div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 8" href="https://wakeforest.instructure.com/courses/77445/modules/258878?wrap=1">Module 8: Reflection, Lessons Learned, and Capstone Simulation</a></div>
         </div>
     </div>
 </div>
 <div class="grid-row">
-  <div class="col-xs-12 WFU-footer">
-      <div class="grid-row">
-        <div class="col-xs-12">
-          <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-        </div>
-      </div>
+    <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
     </div>
 </div>`;
 }
