@@ -368,16 +368,21 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
   const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
   const isSection = (s: string, re: RegExp) => re.test(s.trim());
   
-  const h3Names = [/^(\*\*|__)*Required\s+Resources(\*\*|__)*\s*:?\s*$/i, /^(\*\*|__)*Optional\s+Resources(\*\*|__)*\s*:?\s*$/i];
+  // --- FIX 1: Updated regex for headers ---
+  // This is more robust and handles odd bolding (e.g., ****)
+  const h3Names = [
+    /^[^\w]*Required\s+Resources[^\w]*:?\s*$/i, 
+    /^[^\w]*Optional\s+Resources[^\w]*:?\s*$/i
+  ];
   const h4Names = [
-    /^(\*\*|__)*Reading(?:s)?(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Video(?:s)?(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Articles(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Podcasts(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Tools(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Websites(\*\*|__)*\s*:?\s*$/i, 
-    /^(\*\*|__)*Case\s+Studies(\*\*|__)*\s*:?\s*$/i,
-    /^(\*\*|__)*Textbook Readings(\*\*|__)*\s*:?\s*$/i
+    /^[^\w]*Reading(?:s)?[^\w]*:?\s*$/i, 
+    /^[^\w]*Video(?:s)?[^\w]*:?\s*$/i, 
+    /^[^\w]*Articles[^\w]*:?\s*$/i, 
+    /^[^\w]*Podcasts[^\w]*:?\s*$/i, 
+    /^[^\w]*Tools[^\w]*:?\s*$/i, 
+    /^[^\w]*Websites[^\w]*:?\s*$/i, 
+    /^[^\w]*Case\s+Studies[^\w]*:?\s*$/i,
+    /^[^\w]*Textbook Readings[^\w]*:?\s*$/i
   ];
   
   const youtubeRe = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
@@ -461,18 +466,19 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // Skip lines that are just markdown characters (e.g. "____")
     if (/^[\*_]+$/.test(line)) continue;
 
-    // --- UPDATED isBulletLine REGEX ---
-    // A line is a bullet if it starts with -, •, * or a number, AND is followed by a space.
-    // This prevents `**Bold**` from being treated as a bullet.
-    const isBulletLine = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw);
+    // --- FIX 3: Updated isBulletLine REGEX ---
+    // A line is a bullet if it starts with -, •, * or a number, AND is followed by a space
+    // OR if it starts with **Exercise:** (or variations)
+    const isBulletLine = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw) || /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
 
     // --- 1. HEADING DETECTION ---
 
     // Check H3 (e.g., "Required Resources")
+    // Use the new robust regex
     if (h3Names.some(re => isSection(line, re))) {
       closeList();
       flushPendingVideo();
-      const heading = line.replace(/\*\*|__/g, '').trim().replace(/:$/, '');
+      const heading = line.replace(/[^\w\s]/g, '').trim().replace(/:$/, ''); // Simple clean
       bodyHtml += `<h3>${heading}</h3>\n`;
       currentListType = null;
       continue;
@@ -485,18 +491,20 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
                         !/https?:\/\//.test(line) && 
                         /.+:\s*$/.test(line);
                         
+    // Use the new robust regex for h4Names
     if (h4Names.some(re => isSection(line, re)) || isGenericH4) {
       closeList();
       flushPendingVideo();
-      const name = line.replace(/\*\*|__/g, '').trim().replace(/:$/, '');
+      const name = line.replace(/[^\w\s]/g, '').trim().replace(/:$/, ''); // Simple clean
       bodyHtml += `<h4>${name}</h4>\n`;
       
       // Set the parser mode for the content *following* this heading
-      if (/^(\*\*|__)*Video/i.test(line)) {
+      // Use the robust regex again to check
+      if (/^[^\w]*Video/i.test(line)) {
         currentListType = 'videos';
-      } else if (/^(\*\*|__)*Textbook Readings/i.test(line)) {
+      } else if (/^[^\w]*Textbook Readings/i.test(line)) {
         currentListType = 'textbook';
-      } else if (/^(\*\*|__)*Reading/i.test(line)) {
+      } else if (/^[^\w]*Reading/i.test(line)) {
         currentListType = 'readings';
       } else {
         currentListType = 'generic'; // "Experimenting...", "Articles:", etc.
@@ -507,6 +515,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // --- 2. CONTENT PARSING ---
 
     // A. Handle "Videos" section (special logic)
+    // This logic is now correctly triggered because "**Video:**" is identified as H4
     if (currentListType === 'videos') {
       closeList(); // Videos are not in a <ul>
       lastLineWasTitleWithoutUrl = false;
@@ -585,6 +594,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
     // B. Handle "Readings", "Textbook", or "Generic" sections (all use list logic)
     if (currentListType === 'readings' || currentListType === 'textbook' || currentListType === 'generic') {
+      // This logic is now triggered for "**Exercise:**" because isBulletLine is true
       if (!isBulletLine) {
          // This is a paragraph *inside* a section (e.g., an intro).
          closeList(); // Stop any list.
@@ -594,10 +604,13 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
       // It's a bullet. Handle indentation.
       handleIndent(raw);
+      
+      // Clean the line, removing standard bullet markers
       const cleanLine = line.replace(/^[-•\*]\s*/, '').replace(/^\d+[\.)]\s+/, '');
 
       // Special formatting for bolded "Exercise:"
-      let content = autolink(cleanLine).replace(/^(\*\*|__)Exercise:(\*\*|__)/i, '<strong>Exercise:</strong>');
+      // This will now catch "**Exercise:**" as cleanLine will be "**Exercise:** Ask..."
+      let content = autolink(cleanLine).replace(/^(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i, '<strong>Exercise:</strong>');
       
       // Handle "Title URL" pattern
       const patWithDesc = /^(.*?)\s+(https?:\/\/\S+):(.*)$/; // Title URL: Desc
@@ -657,7 +670,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     <div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <p>The following resources will help you master the material and prepare for the module assessments.<br /><strong></strong></p>
-            <p><strong>IMPORTANT:</strong> It can take you up to 20 hours to study the material in this module and to successfully complete the assessments. Waiting until the weekend to consume all the material can lead to poor outcomes as you will not have sufficient time to absorb the content. If you plan out your week and complete a little bit every day, you will fare far better and have adequate time to seek answers to questions.</p>
+            <p><strong>IMPORTANT:</strong> It can take up to 20 hours to study the material in this module and to successfully complete the assessments. Waiting until the weekend to consume all the material can lead to poor outcomes as you will not have sufficient time to absorb the content. If you plan out your week and complete a little bit every day, you will fare far better and have adequate time to seek answers to questions.</p>
             ${html}
         </div>
     </div>
