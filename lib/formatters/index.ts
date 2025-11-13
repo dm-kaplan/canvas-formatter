@@ -1848,46 +1848,41 @@ function normalizeCanvasFileUrl(url: string, baseUrl?: string, courseId?: string
  * Renders standardized syllabus header with instructor info and download link
  */
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
-  const courseName = context.courseName || 'Course Name';
-  const courseCode = context.courseCode || 'COURSE 000';
-  const instructorName = context.instructorName || 'First Name, Last Name';
-  const instructorCredentials = context.instructorCredentials || 'Credentials';
+
+  const courseName = context.courseName || 'Emerging Tools and Technologies in AI';
+  const instructorName = context.instructorName || 'First Name, last name, Title (PhD), (Position) Teaching Professor';
   const instructorEmail = context.instructorEmail || 'email@wfu.edu';
-  const syllabusFileName = context.syllabusFileName || `${courseCode} ${courseName} Syllabus.docx`;
+  const syllabusFileName = context.syllabusFileName || 'AIN Emerging Tools and Technologies in AI Syllabus.docx';
   const syllabusFileUrl = context.syllabusFileUrl || '';
-  const emailLink = `<a href="mailto:${instructorEmail}">${instructorEmail}</a>`;
-
-  // Normalize file URL and add Canvas preview attributes
-  const normalizedUrl = syllabusFileUrl 
-    ? normalizeCanvasFileUrl(syllabusFileUrl, context.baseUrl, context.courseId) 
+  const emailLink = `<a href=\"mailto:${instructorEmail}\" target=\"_blank\" rel=\"noopener\">${instructorEmail}</a>`;
+  const normalizedUrl = syllabusFileUrl
+    ? normalizeCanvasFileUrl(syllabusFileUrl, context.baseUrl, context.courseId)
     : '';
-
   const downloadSegment = normalizedUrl
-    ? `<strong>Course Syllabus: </strong><a href="${normalizedUrl}" class="instructure_file_link instructure_scribd_file" title="${syllabusFileName}">${syllabusFileName}</a>`
-    : `<strong>Course Syllabus: </strong>${syllabusFileName}`;
+    ? `<strong>Course Syllabus:&nbsp;</strong><a href=\"${normalizedUrl}\" class=\"instructure_file_link instructure_scribd_file\" title=\"${syllabusFileName}\">${syllabusFileName}</a>`
+    : `<strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}`;
 
-  const introHtml = markdownToHtml(content); // allow additional syllabus body content via markdown
-
-  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-      <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted"></div>
+  return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
+    <div class=\"grid-row\">
+        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
+            <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
+                <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <p class="WFU-SubpageHeader">${courseName}</p>
-      <h2 class="WFU-SubpageSubheader">Syllabus</h2>
-      <p><strong>Instructor:</strong> ${instructorName}, ${instructorCredentials}, Adjunct Professor of Practice<br /><strong>E-mail:</strong> ${emailLink}<br /><strong>Office:</strong> By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a></p>
-      <p>${downloadSegment}</p>
-      ${introHtml}
+    <div class=\"grid-row\">
+        <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
+            <p class=\"WFU-SubpageHeader\">${courseName}</p>
+            <h2 class=\"WFU-SubpageSubheader\">Syllabus</h2>
+            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName} <br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>&nbsp;${emailLink}<strong> [make this a link]<br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href=\"https://wakeforest-university.zoom.us\" target=\"_blank\" rel=\"noopener\">https://wakeforest-university.zoom.us</a><strong></strong></p>
+            <p>${downloadSegment} (Insert file to download)</p>
+        </div>
     </div>
-  </div>
-  <div class="grid-row">
-  <div class="col-xs-12 WFU-footer">
-  <footer class="WFU-footer"></footer>
+    <div class=\"grid-row\">
+        <div class=\"col-xs-12\">
+            <footer class=\"WFU-footer\">&nbsp;</footer>
+        </div>
     </div>
-  </div>
 </div>`;
 }
 
