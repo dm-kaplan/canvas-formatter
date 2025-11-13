@@ -345,7 +345,11 @@ function formatWFUModule(content: string, context: TemplateContext = {}): string
             </ul>
             <div class="grid-row">
                 <div class="col-xs-12 WFU-footer">
-                    <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+              <div class="grid-row">
+                <div class="col-xs-12">
+                  <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+                </div>
+              </div>
                 </div>
             </div>
         </div>
@@ -646,7 +650,11 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     </div>
     <div class="grid-row">
   <div class="col-xs-12 WFU-footer">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          <div class="grid-row">
+            <div class="col-xs-12">
+              <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            </div>
+          </div>
         </div>
     </div>
 </div>`;
@@ -678,7 +686,11 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
     </div>
     <div class="grid-row">
   <div class="col-xs-12 WFU-footer">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          <div class="grid-row">
+            <div class="col-xs-12">
+              <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            </div>
+          </div>
         </div>
     </div>
 </div>`;
@@ -1592,7 +1604,11 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
     </div>
     <div class="grid-row">
   <div class="col-xs-12 WFU-footer">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          <div class="grid-row">
+            <div class="col-xs-12">
+              <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            </div>
+          </div>
         </div>
     </div>
 </div>`;
@@ -1726,7 +1742,11 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     </div>
     <div class="grid-row">
   <div class="col-xs-12 WFU-footer">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          <div class="grid-row">
+            <div class="col-xs-12">
+              <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            </div>
+          </div>
         </div>
     </div>
 </div>`;
@@ -1806,7 +1826,11 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
 </div>
 <div class="grid-row">
   <div class="col-xs-12 WFU-footer">
-  <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      <div class="grid-row">
+        <div class="col-xs-12">
+          <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+        </div>
+      </div>
     </div>
 </div>`;
 }
