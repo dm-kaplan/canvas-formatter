@@ -116,6 +116,7 @@ export default function InstructorPresentationForm({
 
   return (
     <>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
             Course Name *
@@ -158,15 +159,6 @@ export default function InstructorPresentationForm({
             />
           </div>
         </div>
-
-        {/* --- REMOVED ---
-          - Overwrite Checkbox
-          - Overwrite Dropdown
-          - Module Dropdown
-        --- */}
-
-        {/* Removed 'Set as Published' checkbox */}
-        
         <div>
           <button
             type="submit"
@@ -177,7 +169,6 @@ export default function InstructorPresentationForm({
           </button>
         </div>
       </form>
-
       {/* --- NEW HTML MODAL --- */}
       {showModal && (
         <div 
