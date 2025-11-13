@@ -531,13 +531,17 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
         }
         continue;
       }
-      // If there's an earlier pending title, output it with placeholder before starting a new one
+      // Only output a placeholder if the previous pending title wasn't just output
       if (pendingVideoTitle) {
-        bodyHtml += `<p>${pendingVideoTitle}</p>\n`;
-        bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
+        // Only output if the previous line was not a title without a URL (prevents consecutive placeholders)
+        if (!lastLineWasTitleWithoutUrl) {
+          bodyHtml += `<p>${pendingVideoTitle}</p>\n`;
+          bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
+        }
       }
       // Store this line as the next video title
       pendingVideoTitle = line.replace(/^[-•\*]\s*/, ''); // Strip list bullets
+      lastLineWasTitleWithoutUrl = true;
       continue;
     }
 
@@ -612,10 +616,10 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
   closeUl();
   
-  // If there's a pending video title at the end, output it with placeholder
+  // If there's a pending video title at the end, output it with placeholder (only once)
   if (pendingVideoTitle) {
     bodyHtml += `<p>${pendingVideoTitle}</p>\n`;
-    bodyHtml += `<div class="WFU-Container-LectureMedia">\n                <div class="VideoPlayer">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
+    bodyHtml += `<div class=\"WFU-Container-LectureMedia\">\n                <div class=\"VideoPlayer\">\n                    <p>HERE</p>\n                </div>\n            </div>\n`;
   }
 
   let html = bodyHtml;
