@@ -514,7 +514,8 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       if (ytMatch || tedMatch) {
         flushPendingVideo(); // Flush any previous title
         
-        const urlStart = ytMatch ? ytMatch.index : tedMatch!.index;
+        // --- FIX: Add nullish coalescing to fix type error ---
+        const urlStart = (ytMatch ? ytMatch.index : tedMatch!.index) ?? 0;
         const title = urlStart > 0 ? line.substring(0, urlStart).trim().replace(/^[-•\*]\s*/, '') : null;
         
         let contextText = '';
@@ -1776,7 +1777,7 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
               <ul>
                 <li>An introduction to the course instructor&nbsp;</li>
                 <li>An overview of assessments</li>
-                <li>Other important information about the course&nbsp;&;&nbsp;</li>
+                <li>Other important information about the course&nbsp;&nbsp;</li>
               </ul>
               <li>Tools for Success</li>
               <ul>
@@ -1793,10 +1794,10 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 2" href="https://wakeforest.instructure.com/courses/77445/modules/258872?wrap=1">Module 2: Incident Detection and Executive Response Leadership</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 3" href="https://wakeforest.instructure.com/courses/77445/modules/258873?wrap=1">Module 3: Crisis Communication and Stakeholder Coordination</a></div>
           <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 4" href="https://wakeforest.instructure.com/courses/77445/modules/258874?wrap=1">Module 4: Business Continuity Planning and Operational Recovery</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 5" href="https://wakeforest.instructure.com/courses/77445/modules/258875?wrap=1">Module 5: AI, Automation, and the Future of Incident Management</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 6" href="https://wakeforest.instructure.com/courses/77445/modules/258876?wrap=1">Module 6: Regulatory Compliance and Global Standards in Resilience</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 7" href="https://wakeforest.instructure.com/courses/77445/modules/258877?wrap=1">Module 7: Ethics, Governance, and Executive Accountability</a></div>
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 8" href="https://wakeforest.instructure.com/courses/77445/modules/258878?wrap=1">Module 8: Reflection, Lessons Learned, and Capstone Simulation</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 5" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258875?wrap=1">Module 5: AI, Automation, and the Future of Incident Management</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 6" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258876?wrap=1">Module 6: Regulatory Compliance and Global Standards in Resilience</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 7" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258877?wrap=1">Module 7: Ethics, Governance, and Executive Accountability</a></div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module 8" href="https(D:/AITEMP/index.ts.ts)://wakeforest.instructure.com/courses/77445/modules/258878?wrap=1">Module 8: Reflection, Lessons Learned, and Capstone Simulation</a></div>
         </div>
       </div>
       <div class="grid-row">
@@ -1923,7 +1924,7 @@ export function formatContent(
     case 'wfuMeetFaculty':
       formatted = formatWFUMeetFaculty(content, context);
       break;
-    case 'wfUAssessmentOverview':
+    case 'wfuAssessmentOverview':
       formatted = formatWFUAssessmentOverview(content, context);
       break;
     default:
