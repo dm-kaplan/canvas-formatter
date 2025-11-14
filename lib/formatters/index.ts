@@ -432,9 +432,9 @@ function formatWFUModule(content: string, context: TemplateContext = {}): string
                 ${checklistHtml}
             </ul>
         <div class="grid-row">
-            <div class="col-xs-12">
-          <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-            </div>
+          <div class="col-xs-12">
+            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+          </div>
         </div>
         </div>
     </div>
@@ -801,9 +801,9 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
         </div>
     </div>
     <div class="grid-row">
-        <div class="col-xs-12">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-        </div>
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
     </div>
 </div>`;
 }
@@ -833,14 +833,9 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
         </div>
     </div>
     <div class="grid-row">
-  <div class="col-xs-12 WFU-footer">
-          <div class="grid-row">
-        <div class="grid-row">
-            <div class="col-xs-12">
-                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-            </div>
-        </div>
-        </div>
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
     </div>
 </div>`;
 }
@@ -925,6 +920,7 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     html += `<h3>${markdownToHtml(section.heading)}:</h3>\n`;
     html += renderLines(section.lines);
   }
+  html += `<div class=\"grid-row\">\n    <div class=\"col-xs-12\">\n        <footer class=\"WFU-footer\">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>\n    </div>\n</div>`;
   html += '</div>';
   return html;
 }
