@@ -431,11 +431,12 @@ function formatWFUModule(content: string, context: TemplateContext = {}): string
             <ul>
                 ${checklistHtml}
             </ul>
-        <div class="grid-row">
-          <div class="col-xs-12">
+    </div>
+    <div class="grid-row">
+        <div class="col-xs-12">
             <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-          </div>
         </div>
+    </div>
         </div>
     </div>
 </div>`;
@@ -801,9 +802,9 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
         </div>
     </div>
     <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-      </div>
+        <div class="col-xs-12">
+            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+        </div>
     </div>
 </div>`;
 }
@@ -833,9 +834,9 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
         </div>
     </div>
     <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-      </div>
+        <div class="col-xs-12">
+            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+        </div>
     </div>
 </div>`;
 }
