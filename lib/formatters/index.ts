@@ -1,3 +1,64 @@
+/**
+ * Returns available Canvas formatter templates for UI selection
+ */
+export function getAvailableTemplates() {
+  return [
+    {
+      id: 'wfuCourseWelcome',
+      name: 'WFU Course Welcome',
+      description: 'Wake Forest SPS course welcome page',
+      useCase: 'Course landing/welcome page linking to modules',
+    },
+    {
+      id: 'wfuCourseSyllabus',
+      name: 'WFU Course Syllabus',
+      description: 'Standard syllabus page with instructor and download link',
+      useCase: 'Overwrite existing syllabus page with standardized format',
+    },
+    {
+      id: 'wfuMeetFaculty',
+      name: 'WFU Meet the Lead Faculty',
+      description: 'Wake Forest SPS faculty introduction page',
+      useCase: 'WFU faculty bio page with photo and contact information',
+    },
+    {
+      id: 'wfuAssessmentOverview',
+      name: 'WFU Overview of Assessments',
+      description: 'Wake Forest SPS assessment overview page',
+      useCase: 'WFUP page describing all course assessments and point values',
+    },
+    {
+      id: 'wfuModule',
+      name: 'WFU Module Overview',
+      description: 'Wake Forest SPS module format with objectives and checklist',
+      useCase: 'WFU module overview pages with branded styling',
+    },
+    {
+      id: 'wfuInstructorPresentation',
+      name: 'WFU Instructor Presentation',
+      description: 'Wake Forest SPS instructor presentation video page',
+      useCase: 'WFU instructor presentation pages with video content',
+    },
+    {
+      id: 'wfuLearningMaterials',
+      name: 'WFU Learning Materials',
+      description: 'Wake Forest SPS learning materials page format',
+      useCase: 'WFU module learning materials pages with required/optional resources',
+    },
+    {
+      id: 'wfuDiscussion',
+      name: 'WFU Discussion',
+      description: 'Wake Forest SPS discussion page format',
+      useCase: 'WFU discussion pages with consistent formatting',
+    },
+    {
+      id: 'wfuAssignment',
+      name: 'WFU Assignment',
+      description: 'Wake Forest SPS assignment page format',
+      useCase: 'WFU assignment pages with purpose, task, and instructions',
+    },
+  ];
+}
 // --- STUBS FOR MISSING FORMATTER FUNCTIONS ---
 function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
   return '';
