@@ -719,28 +719,30 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
           content = autolink(content);
       }
       
-      // Handle "Title URL" pattern, but only if not already linked
-      const patWithDesc = /^(.*?)\s+(https?:\/\/\S+):(.*)$/; // Title URL: Desc
-      const patSimple = /^(.*?)\s+(https?:\/\/\S+)\s*$/;  // Title URL
-      
-      // Need to strip tags for matching
-      const plainContent = content.replace(/<[^>]+>/g, '');
-      const mDesc = plainContent.match(patWithDesc);
-      const mSimple = !mDesc ? plainContent.match(patSimple) : null;
-      
-      if (mDesc) {
+        // Always hyperlink any bare URL in readings, even if not in 'Title URL' format
+        const patWithDesc = /^(.*?)\s+(https?:\/\/\S+):(.*)$/; // Title URL: Desc
+        const patSimple = /^(.*?)\s+(https?:\/\/\S+)\s*$/;  // Title URL
+        // Need to strip tags for matching
+        const plainContent = content.replace(/<[^>]+>/g, '');
+        const mDesc = plainContent.match(patWithDesc);
+        const mSimple = !mDesc ? plainContent.match(patSimple) : null;
+        const urlMatch = plainContent.match(/https?:\/\/\S+/);
+        if (mDesc) {
           const rawTitle = mDesc[1].trim();
           const rawUrl = mDesc[2].trim().replace(/:$/,'');
           const rest = mDesc[3].trim();
           content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle}</a>${rest ? `: ${rest}` : ''}`;
-      } else if (mSimple) {
+        } else if (mSimple) {
           const rawTitle = mSimple[1].trim();
           const rawUrl = mSimple[2].trim().replace(/:$/,'');
-          // Don't re-link if it's already the "Exercise:" line or already contains a link
           if (!content.startsWith('<strong>Exercise:</strong>') && !/<\s*a\s*href/i.test(content)) {
-             content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle || rawUrl}</a>`;
+           content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle || rawUrl}</a>`;
           }
-      }
+        } else if (urlMatch && !/<\s*a\s*href/i.test(content)) {
+          // If there's a bare URL anywhere, hyperlink it (even if not in Title URL format)
+          const url = urlMatch[0];
+          content = content.replace(url, `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
+        }
       
       bodyHtml += `<li>${content}</li>\n`;
       continue;
