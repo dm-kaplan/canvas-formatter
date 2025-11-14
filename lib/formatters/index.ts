@@ -847,81 +847,82 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Normalize and split into sections by headings (strip asterisks, bold, whitespace)
-  const headingLabels = [
-    'Prompt', 'Discussion Prompt', 'Objectives', 'This discussion aligns',
-    'Response to Classmates', 'Instructions', 'Criteria for Success (Grading Rubric)', 'Grading Rubric', 'TIP'
+  // Parse sections by headings
+  const sectionOrder = [
+    'Prompt',
+    'This discussion aligns',
+    'Objectives',
+    'Response to Classmates',
+    'Instructions',
+    'Criteria for Success (Grading Rubric)',
+    'Grading Rubric',
+    'TIP'
   ];
-  // headingRegex removed (was unused and caused runtime error)
   const lines = content.split(/\r?\n/);
-  const sections: { heading: string; lines: string[] }[] = [];
-  let currentSection: { heading: string; lines: string[] } | null = null;
-
-  function normalizeHeading(line: string): string | null {
-    // Remove asterisks, underscores, bold, colons, and whitespace
-    let clean = line.replace(/^[\s*_\-]+|[\s*_\-]+$/g, '');
-    clean = clean.replace(/^\*+|\*+$/g, '');
-    clean = clean.replace(/^_+|_+$/g, '');
-    clean = clean.replace(/^\*\*|\*\*$/g, '');
-    clean = clean.replace(/:$/, '');
-    for (const label of headingLabels) {
-      if (clean.toLowerCase().startsWith(label.toLowerCase())) {
-        return label;
-      }
-    }
-    return null;
-  }
-
+  let current = '';
+  let sections: Record<string, string[]> = {};
+  let lastHeading = '';
   for (let raw of lines) {
     const line = raw.trim();
     if (!line) continue;
-    const heading = normalizeHeading(line);
+    // Find heading
+    const heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase()));
     if (heading) {
-      if (currentSection) sections.push(currentSection);
-      currentSection = { heading, lines: [] };
-      // If there's content after the heading, add it as first line
-      const after = line.replace(/^(\*+|_+)?\s*[^:]+:?/, '').replace(/\*+|_+$/g, '').trim();
-      if (after) currentSection.lines.push(after);
-    } else if (currentSection) {
-      currentSection.lines.push(line);
+      lastHeading = heading;
+      if (!sections[heading]) sections[heading] = [];
+      // If there's content after the heading, add it
+      const after = line.replace(new RegExp(`^${heading}:?\\s*`, 'i'), '').trim();
+      if (after) sections[heading].push(after);
+      continue;
+    }
+    if (lastHeading) {
+      sections[lastHeading].push(line);
     } else {
-      // If no heading yet, treat as part of first section
-      currentSection = { heading: 'Prompt', lines: [line] };
+      // If no heading yet, treat as Prompt
+      lastHeading = 'Prompt';
+      if (!sections['Prompt']) sections['Prompt'] = [];
+      sections['Prompt'].push(line);
     }
   }
-  if (currentSection) sections.push(currentSection);
 
-  // Helper: render lines as paragraphs or lists, with markdown, skip empty
-  function renderLines(ls: string[]): string {
-    let html = '';
-    let inList = false;
-    for (let l of ls) {
-      const trimmed = l.trim();
-      if (!trimmed) {
-        if (inList) { html += '</ul>\n'; inList = false; }
-        continue;
-      }
-      const isBullet = /^[●•\-\*]\s+/.test(trimmed) || /^\d+[\.)]\s+/.test(trimmed);
-      if (isBullet) {
-        if (!inList) { html += '<ul>\n'; inList = true; }
-        html += `<li>${markdownToHtml(trimmed.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, ''))}</li>\n`;
-      } else {
-        if (inList) { html += '</ul>\n'; inList = false; }
-        html += `<p>${markdownToHtml(trimmed)}</p>\n`;
-      }
-    }
-    if (inList) html += '</ul>\n';
-    return html;
-  }
-
-  // Compose HTML
+  // Compose HTML in required order
   let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
-  for (const section of sections) {
-    // Use h3 for all headings, render markdown for heading
-    html += `<h3>${markdownToHtml(section.heading)}:</h3>\n`;
-    html += renderLines(section.lines);
+  // Prompt
+  if (sections['Prompt']) {
+    html += '<h3>Prompt:</h3>\n';
+    html += sections['Prompt'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
   }
-  html += `<div class=\"grid-row\">\n    <div class=\"col-xs-12\">\n        <footer class=\"WFU-footer\">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>\n    </div>\n</div>`;
+  // This discussion aligns/Objectives
+  if (sections['This discussion aligns'] || sections['Objectives']) {
+    html += '<p>This discussion aligns with the following module objectives:</p>\n';
+    const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
+    if (objectives.length) {
+      html += '<ul>\n' + objectives.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n') + '\n</ul>\n';
+    }
+  }
+  // Response to Classmates
+  if (sections['Response to Classmates']) {
+    html += '<h3>Response to Classmates:</h3>\n';
+    html += sections['Response to Classmates'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
+  }
+  // Instructions
+  if (sections['Instructions']) {
+    html += '<h3>Instructions:</h3>\n<ul>\n';
+    html += sections['Instructions'].map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
+    html += '\n</ul>\n';
+  }
+  // Criteria for Success (Grading Rubric) or Grading Rubric
+  if (sections['Criteria for Success (Grading Rubric)'] || sections['Grading Rubric']) {
+    html += '<h3>Criteria for Success (Grading Rubric):</h3>\n<ul>\n';
+    const rubric = (sections['Criteria for Success (Grading Rubric)'] || []).concat(sections['Grading Rubric'] || []);
+    html += rubric.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
+    html += '\n</ul>\n';
+  }
+  // TIP (final, after <hr />)
+  if (sections['TIP']) {
+    html += '<hr />\n';
+    html += sections['TIP'].map(l => `<p><strong>TIP:</strong> ${markdownToHtml(l)}</p>`).join('\n');
+  }
   html += '</div>';
   return html;
 }
