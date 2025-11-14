@@ -870,7 +870,6 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   html += `</div>`;
   return html;
 }
-}
 
 /**
  * WFU Assignment Template
