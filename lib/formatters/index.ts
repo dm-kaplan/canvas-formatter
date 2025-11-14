@@ -959,7 +959,8 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     'Grading Rubric',
     'TIP'
   ];
-  const headingRegex = /^\*\*?\s*([A-Za-z0-9 ()]+):?\*\*?\s*$/;
+  // More robust heading regex: allow for leading/trailing **, :, and whitespace
+  const headingRegex = /^\s*\*{0,2}\s*([A-Za-z0-9 ()]+)\s*:?[\s\*]*$/;
   const lines = content.split(/\r?\n/);
   let currentSection = '';
   let sections: Record<string, string[]> = {};
@@ -993,13 +994,16 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     for (let i = 0; i < lines.length; i++) {
       const l = lines[i].trim();
       if (!l) continue;
+      // Never treat heading lines as content
+      if (headingRegex.test(l)) continue;
       if (/^[-*] /.test(l)) {
         if (!inList) { html += '<ul>\n'; inList = true; }
         html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
       } else {
         if (inList) { html += '</ul>\n'; inList = false; }
         // Only add non-empty, non-heading lines
-        if (l) html += `${markdownToHtml(l).trim() ? `<p>${markdownToHtml(l)}</p>\n` : ''}`;
+        const htmlLine = markdownToHtml(l).trim();
+        if (htmlLine) html += `<p>${htmlLine}</p>\n`;
       }
     }
     if (inList) html += '</ul>\n';
@@ -1017,11 +1021,25 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     html += '<p>This discussion aligns with the following module objectives:</p>\n';
     const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
     if (objectives.length) {
-      html += '<ul>\n';
-      objectives.forEach(l => {
-        html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
-      });
-      html += '</ul>\n';
+      // If the first line is not a list item, treat as description
+      let startIdx = 0;
+      if (objectives[0] && !/^[-*] /.test(objectives[0].trim())) {
+        const desc = markdownToHtml(objectives[0].trim());
+        if (desc) html += `<p>${desc}</p>\n`;
+        startIdx = 1;
+      }
+      // Render the rest as a list if any
+      if (objectives.slice(startIdx).length) {
+        html += '<ul>\n';
+        objectives.slice(startIdx).forEach(l => {
+          if (/^[-*] /.test(l.trim())) {
+            html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
+          } else if (l.trim()) {
+            html += `<li>${markdownToHtml(l.trim())}</li>\n`;
+          }
+        });
+        html += '</ul>\n';
+      }
     }
   }
   // Response to Classmates
