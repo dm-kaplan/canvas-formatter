@@ -847,7 +847,9 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Parse sections by headings
+  // If the input is already HTML (from Google Docs), parse and re-structure by headers
+  let doc = document.createElement('div');
+  doc.innerHTML = content;
   const sectionOrder = [
     'Prompt',
     'This discussion aligns',
@@ -858,70 +860,87 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     'Grading Rubric',
     'TIP'
   ];
-  const lines = content.split(/\r?\n/);
+  let sections: Record<string, HTMLElement[]> = {};
   let current = '';
-  let sections: Record<string, string[]> = {};
-  let lastHeading = '';
-  for (let raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-    // Find heading
-    const heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase()));
-    if (heading) {
-      lastHeading = heading;
-      if (!sections[heading]) sections[heading] = [];
-      // If there's content after the heading, add it
-      const after = line.replace(new RegExp(`^${heading}:?\\s*`, 'i'), '').trim();
-      if (after) sections[heading].push(after);
-      continue;
+  Array.from(doc.children).forEach(el => {
+    if (/^h[1-6]$/i.test(el.tagName)) {
+      const headingText = el.textContent?.replace(/:$/, '').trim() || '';
+      const heading = sectionOrder.find(h => headingText.toLowerCase().startsWith(h.toLowerCase()));
+      if (heading) {
+        current = heading;
+        if (!sections[current]) sections[current] = [];
+        return;
+      }
     }
-    if (lastHeading) {
-      sections[lastHeading].push(line);
+    if (current) {
+      sections[current].push(el as HTMLElement);
     } else {
       // If no heading yet, treat as Prompt
-      lastHeading = 'Prompt';
+      current = 'Prompt';
       if (!sections['Prompt']) sections['Prompt'] = [];
-      sections['Prompt'].push(line);
+      sections['Prompt'].push(el as HTMLElement);
     }
-  }
+  });
 
   // Compose HTML in required order
   let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
   // Prompt
   if (sections['Prompt']) {
     html += '<h3>Prompt:</h3>\n';
-    html += sections['Prompt'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
+    html += sections['Prompt'].map(el => el.outerHTML).join('\n');
   }
   // This discussion aligns/Objectives
   if (sections['This discussion aligns'] || sections['Objectives']) {
     html += '<p>This discussion aligns with the following module objectives:</p>\n';
     const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
     if (objectives.length) {
-      html += '<ul>\n' + objectives.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n') + '\n</ul>\n';
+      html += '<ul>\n';
+      objectives.forEach(el => {
+        if (el.tagName === 'UL' || el.tagName === 'OL') {
+          html += el.outerHTML + '\n';
+        } else {
+          html += `<li>${el.textContent}</li>\n`;
+        }
+      });
+      html += '</ul>\n';
     }
   }
   // Response to Classmates
   if (sections['Response to Classmates']) {
     html += '<h3>Response to Classmates:</h3>\n';
-    html += sections['Response to Classmates'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
+    html += sections['Response to Classmates'].map(el => el.outerHTML).join('\n');
   }
   // Instructions
   if (sections['Instructions']) {
     html += '<h3>Instructions:</h3>\n<ul>\n';
-    html += sections['Instructions'].map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
-    html += '\n</ul>\n';
+    sections['Instructions'].forEach(el => {
+      if (el.tagName === 'UL' || el.tagName === 'OL') {
+        html += el.innerHTML + '\n';
+      } else {
+        html += `<li>${el.textContent}</li>\n`;
+      }
+    });
+    html += '</ul>\n';
   }
   // Criteria for Success (Grading Rubric) or Grading Rubric
   if (sections['Criteria for Success (Grading Rubric)'] || sections['Grading Rubric']) {
     html += '<h3>Criteria for Success (Grading Rubric):</h3>\n<ul>\n';
     const rubric = (sections['Criteria for Success (Grading Rubric)'] || []).concat(sections['Grading Rubric'] || []);
-    html += rubric.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
-    html += '\n</ul>\n';
+    rubric.forEach(el => {
+      if (el.tagName === 'UL' || el.tagName === 'OL') {
+        html += el.innerHTML + '\n';
+      } else {
+        html += `<li>${el.textContent}</li>\n`;
+      }
+    });
+    html += '</ul>\n';
   }
   // TIP (final, after <hr />)
   if (sections['TIP']) {
     html += '<hr />\n';
-    html += sections['TIP'].map(l => `<p><strong>TIP:</strong> ${markdownToHtml(l)}</p>`).join('\n');
+    sections['TIP'].forEach(el => {
+      html += `<p><strong>TIP:</strong> ${el.textContent}</p>\n`;
+    });
   }
   html += '</div>';
   return html;
