@@ -833,72 +833,37 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Split content into lines and normalize
-  const lines = content.split(/\r?\n/).map(l => l.trim());
-  // Section regexes
-  const sectionHeaders = [
-    { key: 'prompt', re: /^(Prompt:?|Discussion Prompt:?)/i },
-    { key: 'objectives', re: /^(Objectives?:?|This discussion aligns)/i },
-    { key: 'response', re: /^Response to Classmates?:?/i },
-    { key: 'instructions', re: /^Instructions?:?/i },
-    { key: 'criteria', re: /^(Criteria for Success|Grading Rubric):?/i },
-    { key: 'tip', re: /^TIP:?/i },
-  ];
-  // Default section order
-  const sectionOrder = ['prompt', 'objectives', 'response', 'instructions', 'criteria', 'tip'];
-  // Default content for missing sections
-  const defaults = {
-    response: `<p>Review and respond to at least two of your classmates’ postings. Your responses need not be long, but they should add substantial thought to the topic. You may certainly respond to more than two classmate posts, but you will only be graded on two. Consider spreading the wealth if you see a post that hasn’t received a response. Respond by continuing the conversation through quality engagement in any of the following ways:</p>
-<ul>
-  <li>Offering a new point of view</li>
-  <li>Asking a question to further the discussion</li>
-  <li>Sharing personal experiences or knowledge</li>
-  <li>Tying the information to new knowledge gained</li>
-  <li>Offering further research or information on the topic</li>
-</ul>`,
-    instructions: `<ul>
-  <li>Your initial post and response posts to at least two peers should be substantive and add value to the conversation.</li>
-  <li>Your initial post (approximately 250 words) is due by <strong>Wednesday at 11:59 p.m. ET.</strong></li>
-  <li>Response posts are due by <strong>Saturday at 11:59 p.m. ET.</strong></li>
-</ul>`,
-    criteria: `<ul>
-  <li>Refer to the discussion rubric for additional details. Click the Options icon (three dots on the top-right of this page) and select the Show Rubric link.</li>
-</ul>`,
-    tip: `<p><strong>TIP:</strong> To avoid inadvertent data loss, first compose your discussion entries in a Word document (or other word processor). Then, cut and paste your text into the discussion window and submit it.</p>`
-  };
-  // Parse sections
-  const sections: Record<string, string[]> = {};
-  let current: string | null = null;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // Split into sections by headings
+  const sectionRegex = /^(Prompt:?|Discussion Prompt:?|Objectives?:?|This discussion aligns|Response to Classmates?:?|Instructions?:?|Criteria for Success \(Grading Rubric\):?|Grading Rubric:?|TIP:?)/i;
+  const lines = content.split(/\r?\n/);
+  const sections: { heading: string; lines: string[] }[] = [];
+  let currentSection: { heading: string; lines: string[] } | null = null;
+
+  for (let raw of lines) {
+    const line = raw.trim();
     if (!line) continue;
-    // Detect section header
-    const found = sectionHeaders.find(s => s.re.test(line));
-    if (found) {
-      current = found.key;
-      // If header line has content after colon, use it as first line
-      const afterColon = line.replace(found.re, '').replace(/^[:\s-]+/, '');
-      if (afterColon) {
-        if (!sections[current]) sections[current] = [];
-        sections[current].push(afterColon);
-      }
-      continue;
-    }
-    if (current) {
-      if (!sections[current]) sections[current] = [];
-      sections[current].push(line);
+    const match = line.match(sectionRegex);
+    if (match) {
+      // Start new section
+      if (currentSection) sections.push(currentSection);
+      currentSection = { heading: match[0].replace(/:$/, ''), lines: [] };
+      // If there's content after the heading, add it as first line
+      const after = line.replace(match[0], '').replace(/^[:\s-]+/, '');
+      if (after) currentSection.lines.push(after);
+    } else if (currentSection) {
+      currentSection.lines.push(line);
     } else {
-      // If no section header yet, treat as prompt
-      if (!sections['prompt']) sections['prompt'] = [];
-      sections['prompt'].push(line);
+      // If no heading yet, treat as part of first section
+      currentSection = { heading: 'Prompt', lines: [line] };
     }
   }
-  // Helper: render lines as paragraphs and lists
+  if (currentSection) sections.push(currentSection);
+
+  // Helper: render lines as paragraphs or lists, with markdown
   function renderLines(ls: string[]): string {
     let html = '';
     let inList = false;
-    for (let i = 0; i < ls.length; i++) {
-      const l = ls[i];
+    for (let l of ls) {
       if (!l) {
         if (inList) { html += '</ul>\n'; inList = false; }
         continue;
@@ -906,55 +871,24 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
       const isBullet = /^[●•\-\*]\s+/.test(l) || /^\d+[\.)]\s+/.test(l);
       if (isBullet) {
         if (!inList) { html += '<ul>\n'; inList = true; }
-        html += `<li>${l.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, '')}</li>\n`;
+        html += `<li>${markdownToHtml(l.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, ''))}</li>\n`;
       } else {
         if (inList) { html += '</ul>\n'; inList = false; }
-        html += `<p>${l}</p>\n`;
+        html += `<p>${markdownToHtml(l)}</p>\n`;
       }
     }
     if (inList) html += '</ul>\n';
     return html;
   }
-  // Helper: render objectives as list
-  function renderObjectives(ls: string[]): string {
-    if (!ls || !ls.length) return '<li>Objective 1</li>\n<li>Objective 2</li>';
-    return ls.map(obj => `<li>${obj.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, '')}</li>`).join('\n');
+
+  // Compose HTML
+  let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
+  for (const section of sections) {
+    // Use h3 for all headings
+    html += `<h3>${section.heading.replace(/\*+/g, '').trim()}:</h3>\n`;
+    html += renderLines(section.lines);
   }
-  // Build HTML
-  let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n`;
-  // Prompt
-  html += `<h3>Prompt:</h3>\n${renderLines(sections.prompt || [])}`;
-  // Objectives
-  html += `<p>This discussion aligns with the following module objectives:</p>\n<ul>\n${renderObjectives(sections.objectives || [])}\n</ul>`;
-  // Response to Classmates
-  html += `<h3>Response to Classmates:</h3>\n`;
-  if (sections.response) {
-    html += renderLines(sections.response);
-  } else {
-    html += defaults.response;
-  }
-  // Instructions
-  html += `<h3>Instructions:</h3>\n`;
-  if (sections.instructions) {
-    html += renderLines(sections.instructions);
-  } else {
-    html += defaults.instructions;
-  }
-  // Criteria for Success
-  html += `<h3>Criteria for Success (Grading Rubric):</h3>\n`;
-  if (sections.criteria) {
-    html += renderLines(sections.criteria);
-  } else {
-    html += defaults.criteria;
-  }
-  // Tip
-  html += `<hr />\n`;
-  if (sections.tip) {
-    html += renderLines(sections.tip);
-  } else {
-    html += defaults.tip;
-  }
-  html += `</div>`;
+  html += '</div>';
   return html;
 }
 
