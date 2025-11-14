@@ -382,7 +382,10 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     /^[^\w]*Tools[^\w]*:?\s*$/i, 
     /^[^\w]*Websites[^\w]*:?\s*$/i, 
     /^[^\w]*Case\s+Studies[^\w]*:?\s*$/i,
-    /^[^\w]*Textbook Readings[^\w]*:?\s*$/i
+    /^[^\w]*Textbook Readings[^\w]*:?\s*$/i,
+    // --- THIS IS THE FIX ---
+    /^[^\w]*Experimenting\s+with\s+an\s+LLM[^\w]*:?\s*$/i
+    // --- END FIX ---
   ];
   
   const youtubeRe = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
