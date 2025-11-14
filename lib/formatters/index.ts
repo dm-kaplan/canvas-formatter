@@ -746,205 +746,130 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Parse the content for prompt and objectives
-  const lines = content.split(/\r?\n/);
-  let promptLines: string[] = [];
-  let objectives: string[] = [];
-  let inObjectives = false;
-  
-  // Section headers that should stop objectives collection
-  const stopHeaders = /^(Response to Classmates?|Instructions?|Criteria for Success|Grading Rubric|TIP):?\s*$/i;
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    
-    // Skip empty lines
-    if (!trimmed) {
-      if (!inObjectives && promptLines.length > 0) {
-        promptLines.push(''); // Preserve spacing in prompt
+  // Split content into lines and normalize
+  const lines = content.split(/\r?\n/).map(l => l.trim());
+  // Section regexes
+  const sectionHeaders = [
+    { key: 'prompt', re: /^(Prompt:?|Discussion Prompt:?)/i },
+    { key: 'objectives', re: /^(Objectives?:?|This discussion aligns)/i },
+    { key: 'response', re: /^Response to Classmates?:?/i },
+    { key: 'instructions', re: /^Instructions?:?/i },
+    { key: 'criteria', re: /^(Criteria for Success|Grading Rubric):?/i },
+    { key: 'tip', re: /^TIP:?/i },
+  ];
+  // Default section order
+  const sectionOrder = ['prompt', 'objectives', 'response', 'instructions', 'criteria', 'tip'];
+  // Default content for missing sections
+  const defaults = {
+    response: `<p>Review and respond to at least two of your classmates’ postings. Your responses need not be long, but they should add substantial thought to the topic. You may certainly respond to more than two classmate posts, but you will only be graded on two. Consider spreading the wealth if you see a post that hasn’t received a response. Respond by continuing the conversation through quality engagement in any of the following ways:</p>
+<ul>
+  <li>Offering a new point of view</li>
+  <li>Asking a question to further the discussion</li>
+  <li>Sharing personal experiences or knowledge</li>
+  <li>Tying the information to new knowledge gained</li>
+  <li>Offering further research or information on the topic</li>
+</ul>`,
+    instructions: `<ul>
+  <li>Your initial post and response posts to at least two peers should be substantive and add value to the conversation.</li>
+  <li>Your initial post (approximately 250 words) is due by <strong>Wednesday at 11:59 p.m. ET.</strong></li>
+  <li>Response posts are due by <strong>Saturday at 11:59 p.m. ET.</strong></li>
+</ul>`,
+    criteria: `<ul>
+  <li>Refer to the discussion rubric for additional details. Click the Options icon (three dots on the top-right of this page) and select the Show Rubric link.</li>
+</ul>`,
+    tip: `<p><strong>TIP:</strong> To avoid inadvertent data loss, first compose your discussion entries in a Word document (or other word processor). Then, cut and paste your text into the discussion window and submit it.</p>`
+  };
+  // Parse sections
+  const sections: Record<string, string[]> = {};
+  let current: string | null = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+    // Detect section header
+    const found = sectionHeaders.find(s => s.re.test(line));
+    if (found) {
+      current = found.key;
+      // If header line has content after colon, use it as first line
+      const afterColon = line.replace(found.re, '').replace(/^[:\s-]+/, '');
+      if (afterColon) {
+        if (!sections[current]) sections[current] = [];
+        sections[current].push(afterColon);
       }
       continue;
     }
-    
-    // Skip if this is a "Prompt:" header (to avoid duplication)
-    if (/^Prompt:?\s*$/i.test(trimmed)) continue;
-    
-    // Stop collecting objectives if we hit a new section
-    if (inObjectives && stopHeaders.test(trimmed)) {
-      break; // Stop processing, we have everything we need
-    }
-    
-    // Check for objectives section
-    if (/objectives?:?\s*$/i.test(trimmed) || /^This discussion aligns/i.test(trimmed)) {
-      inObjectives = true;
-      continue;
-    }
-    
-    // Collect objectives (lines starting with bullet or number, or plain lines when in objectives section)
-    if (inObjectives) {
-      // Remove bullet markers and numbering
-      const cleaned = trimmed.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, '');
-      if (cleaned) {
-        objectives.push(cleaned);
-      }
+    if (current) {
+      if (!sections[current]) sections[current] = [];
+      sections[current].push(line);
     } else {
-      // Collect prompt content
-      promptLines.push(line);
+      // If no section header yet, treat as prompt
+      if (!sections['prompt']) sections['prompt'] = [];
+      sections['prompt'].push(line);
     }
   }
-  
-  // Process prompt content: detect lists and format them
-  let promptHtml = '';
-  let inList = false;
-  let currentParagraph = '';
-  
-  for (let i = 0; i < promptLines.length; i++) {
-    const line = promptLines[i];
-    const trimmed = line.trim();
-    
-    // Check if this is a list item (starts with bullet or is after a list-introducing line)
-    const isBullet = /^[●•\-\*]\s+/.test(trimmed);
-    const hasColonPrefix = /^[^:]+:\s+/.test(trimmed);
-    
-    // Detect list context: lines that end with ":" and next line is a bullet/colon-prefix
-    const nextLine = i + 1 < promptLines.length ? promptLines[i + 1].trim() : '';
-    const isListIntro = trimmed.endsWith(':') && (
-      /^[●•\-\*]\s+/.test(nextLine) || /^[^:]+:\s+/.test(nextLine)
-    );
-    
-    // Split multi-colon lines into separate list items (e.g., "Identify: ... Assess: ... Mitigate: ...")
-  const multiColonMatches = (trimmed.match(/[A-Z][A-Za-z0-9\-,'() ]{0,80}:\s/g) || []).length;
-  if (!isBullet && !hasColonPrefix && multiColonMatches >= 2) {
-      // Close any open paragraph
-      if (currentParagraph.trim()) {
-        promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
-        currentParagraph = '';
+  // Helper: render lines as paragraphs and lists
+  function renderLines(ls: string[]): string {
+    let html = '';
+    let inList = false;
+    for (let i = 0; i < ls.length; i++) {
+      const l = ls[i];
+      if (!l) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        continue;
       }
-      // Start a list
-      if (!inList) {
-        promptHtml += '<ul>\n';
-        inList = true;
-      }
-      const segments = trimmed.split(/(?<=:)\s+(?=[A-Z][^:]+:\s)/);
-      for (const seg of segments) {
-        const itemText = seg.replace(/^([^:]+):\s*/, '<strong>$1:</strong> ');
-        promptHtml += `<li>${itemText}</li>\n`;
-      }
-      // Close list after processing multi-colon line
-      if (inList) {
-        promptHtml += '</ul>\n';
-        inList = false;
-      }
-      continue;
-    }
-
-    // Start a list for standalone colon-prefixed lines (e.g., "Case Overview: ...") when not already in a list
-    if (!isBullet && hasColonPrefix && !inList) {
-      // Close any open paragraph
-      if (currentParagraph.trim()) {
-        promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
-        currentParagraph = '';
-      }
-      promptHtml += '<ul>\n';
-      inList = true;
-    }
-
-    if (isBullet || hasColonPrefix || (inList && hasColonPrefix)) {
-      // Close any open paragraph
-      if (currentParagraph.trim()) {
-        promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
-        currentParagraph = '';
-      }
-      
-      // Start list if not already in one
-      if (!inList) {
-        promptHtml += '<ul>\n';
-        inList = true;
-      }
-      
-      // Remove bullet marker
-  let itemText = trimmed.replace(/^[●•\-\*]\s+/, '');
-      
-      // Bold text before colon if present
-      itemText = itemText.replace(/^([^:]+):\s*/, '<strong>$1:</strong> ');
-      
-      promptHtml += `<li>${itemText}</li>\n`;
-  } else if (trimmed === '') {
-      // Empty line - close list if open
-      if (inList) {
-        promptHtml += '</ul>\n';
-        inList = false;
-      }
-      // Add to paragraph buffer if we have content
-      if (currentParagraph.trim()) {
-        promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
-        currentParagraph = '';
-      }
-  } else if (isListIntro) {
-      // Line ending with colon that introduces a list - treat as a paragraph heading before the list
-      if (currentParagraph.trim()) {
-        promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
-      }
-      promptHtml += `<p>${trimmed}</p>\n`;
-      currentParagraph = '';
-    } else {
-      // Regular text - accumulate in paragraph
-      if (currentParagraph) {
-        currentParagraph += ' ' + trimmed;
+      const isBullet = /^[●•\-\*]\s+/.test(l) || /^\d+[\.)]\s+/.test(l);
+      if (isBullet) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        html += `<li>${l.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, '')}</li>\n`;
       } else {
-        currentParagraph = trimmed;
+        if (inList) { html += '</ul>\n'; inList = false; }
+        html += `<p>${l}</p>\n`;
       }
     }
+    if (inList) html += '</ul>\n';
+    return html;
   }
-  
-  // Close any remaining open tags
-  if (inList) {
-    promptHtml += '</ul>\n';
+  // Helper: render objectives as list
+  function renderObjectives(ls: string[]): string {
+    if (!ls || !ls.length) return '<li>Objective 1</li>\n<li>Objective 2</li>';
+    return ls.map(obj => `<li>${obj.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, '')}</li>`).join('\n');
   }
-  if (currentParagraph.trim()) {
-    promptHtml += `<p>${currentParagraph.trim()}</p>\n`;
+  // Build HTML
+  let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n`;
+  // Prompt
+  html += `<h3>Prompt:</h3>\n${renderLines(sections.prompt || [])}`;
+  // Objectives
+  html += `<p>This discussion aligns with the following module objectives:</p>\n<ul>\n${renderObjectives(sections.objectives || [])}\n</ul>`;
+  // Response to Classmates
+  html += `<h3>Response to Classmates:</h3>\n`;
+  if (sections.response) {
+    html += renderLines(sections.response);
+  } else {
+    html += defaults.response;
   }
-  
-  // Bold due dates (day of week followed by "at HH:MM" pattern)
-  promptHtml = promptHtml.replace(
-    /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+at\s+\d{1,2}:\d{2}\s+(?:a\.m\.|p\.m\.)\s+ET/gi,
-    '<strong>$&</strong>'
-  );
-  
-  // Build objectives list
-  const objectivesHtml = objectives.length 
-    ? objectives.map(obj => `<li>${obj}</li>`).join('\n        ')
-    : '<li>Objective 1</li>\n        <li>Objective 2</li>';
-
-  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <h3>Prompt:</h3>
-    ${promptHtml}
-    <p>This discussion aligns with the following module objectives:</p>
-    <ul>
-        ${objectivesHtml}
-    </ul>
-    <h3>Response to Classmates:</h3>
-    <p>Review and respond to at least two of your classmates&rsquo; postings. Your responses need not be long, but they should add substantial thought to the topic. You may certainly respond to more than two classmate posts but will only be graded on two. Consider spreading the wealth if you see a post that hasn&rsquo;t received a response. Respond by continuing the conversation through quality engagement in any of the following ways:&nbsp;</p>
-    <ul>
-        <li>Offering a new point of view</li>
-        <li>Asking a question to further the discussion</li>
-        <li>Sharing personal experiences or knowledge</li>
-        <li>Tying the information to new knowledge gained</li>
-        <li>Offering further research or information on the topic</li>
-    </ul>
-    <h3>Instructions:</h3>
-    <ul>
-        <li>Your initial post and response posts to at least two peers should be substantive and add value to the conversation.</li>
-        <li>Your initial post (approximately 300&ndash;350 words) is due by <strong>Wednesday at 11:59 p.m. ET.</strong></li>
-        <li>Response posts (approximately 150&ndash;200 words each) are due by <strong>Saturday at 11:59 p.m. ET.</strong></li>
-    </ul>
-    <h3>Criteria for Success (Grading Rubric):</h3>
-    <ul>
-        <li>Refer to the discussion rubric for additional details. Click the Options icon (three dots on the top-right of this page) and select the Show Rubric link.</li>
-    </ul>
-    <hr />
-    <p><strong>TIP:</strong> To avoid inadvertent data loss, first compose your discussion entries in a Word document. Then, cut and paste your text into the discussion window and submit it.</p>
-</div>`;
+  // Instructions
+  html += `<h3>Instructions:</h3>\n`;
+  if (sections.instructions) {
+    html += renderLines(sections.instructions);
+  } else {
+    html += defaults.instructions;
+  }
+  // Criteria for Success
+  html += `<h3>Criteria for Success (Grading Rubric):</h3>\n`;
+  if (sections.criteria) {
+    html += renderLines(sections.criteria);
+  } else {
+    html += defaults.criteria;
+  }
+  // Tip
+  html += `<hr />\n`;
+  if (sections.tip) {
+    html += renderLines(sections.tip);
+  } else {
+    html += defaults.tip;
+  }
+  html += `</div>`;
+  return html;
+}
 }
 
 /**
