@@ -833,22 +833,40 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Split into sections by headings
-  const sectionRegex = /^(Prompt:?|Discussion Prompt:?|Objectives?:?|This discussion aligns|Response to Classmates?:?|Instructions?:?|Criteria for Success \(Grading Rubric\):?|Grading Rubric:?|TIP:?)/i;
+  // Normalize and split into sections by headings (strip asterisks, bold, whitespace)
+  const headingLabels = [
+    'Prompt', 'Discussion Prompt', 'Objectives', 'This discussion aligns',
+    'Response to Classmates', 'Instructions', 'Criteria for Success (Grading Rubric)', 'Grading Rubric', 'TIP'
+  ];
+  const headingRegex = new RegExp(`^(\*+|_+)?\s*(?:${headingLabels.map(l => l.replace(/[()]/g, '\$&')).join('|')})(:?)(\s*\*+|_+)?\s*$`, 'i');
   const lines = content.split(/\r?\n/);
   const sections: { heading: string; lines: string[] }[] = [];
   let currentSection: { heading: string; lines: string[] } | null = null;
 
+  function normalizeHeading(line: string): string | null {
+    // Remove asterisks, underscores, bold, colons, and whitespace
+    let clean = line.replace(/^[\s*_\-]+|[\s*_\-]+$/g, '');
+    clean = clean.replace(/^\*+|\*+$/g, '');
+    clean = clean.replace(/^_+|_+$/g, '');
+    clean = clean.replace(/^\*\*|\*\*$/g, '');
+    clean = clean.replace(/:$/, '');
+    for (const label of headingLabels) {
+      if (clean.toLowerCase().startsWith(label.toLowerCase())) {
+        return label;
+      }
+    }
+    return null;
+  }
+
   for (let raw of lines) {
     const line = raw.trim();
     if (!line) continue;
-    const match = line.match(sectionRegex);
-    if (match) {
-      // Start new section
+    const heading = normalizeHeading(line);
+    if (heading) {
       if (currentSection) sections.push(currentSection);
-      currentSection = { heading: match[0].replace(/:$/, ''), lines: [] };
+      currentSection = { heading, lines: [] };
       // If there's content after the heading, add it as first line
-      const after = line.replace(match[0], '').replace(/^[:\s-]+/, '');
+      const after = line.replace(/^(\*+|_+)?\s*[^:]+:?/, '').replace(/\*+|_+$/g, '').trim();
       if (after) currentSection.lines.push(after);
     } else if (currentSection) {
       currentSection.lines.push(line);
@@ -859,22 +877,23 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   }
   if (currentSection) sections.push(currentSection);
 
-  // Helper: render lines as paragraphs or lists, with markdown
+  // Helper: render lines as paragraphs or lists, with markdown, skip empty
   function renderLines(ls: string[]): string {
     let html = '';
     let inList = false;
     for (let l of ls) {
-      if (!l) {
+      const trimmed = l.trim();
+      if (!trimmed) {
         if (inList) { html += '</ul>\n'; inList = false; }
         continue;
       }
-      const isBullet = /^[●•\-\*]\s+/.test(l) || /^\d+[\.)]\s+/.test(l);
+      const isBullet = /^[●•\-\*]\s+/.test(trimmed) || /^\d+[\.)]\s+/.test(trimmed);
       if (isBullet) {
         if (!inList) { html += '<ul>\n'; inList = true; }
-        html += `<li>${markdownToHtml(l.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, ''))}</li>\n`;
+        html += `<li>${markdownToHtml(trimmed.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, ''))}</li>\n`;
       } else {
         if (inList) { html += '</ul>\n'; inList = false; }
-        html += `<p>${markdownToHtml(l)}</p>\n`;
+        html += `<p>${markdownToHtml(trimmed)}</p>\n`;
       }
     }
     if (inList) html += '</ul>\n';
@@ -884,8 +903,8 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   // Compose HTML
   let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
   for (const section of sections) {
-    // Use h3 for all headings
-    html += `<h3>${section.heading.replace(/\*+/g, '').trim()}:</h3>\n`;
+    // Use h3 for all headings, render markdown for heading
+    html += `<h3>${markdownToHtml(section.heading)}:</h3>\n`;
     html += renderLines(section.lines);
   }
   html += '</div>';
