@@ -977,7 +977,7 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     if (heading) {
       currentSection = heading;
       if (!sections[currentSection]) sections[currentSection] = [];
-      continue;
+      continue; // Do NOT include heading line as content
     }
     if (!currentSection) {
       currentSection = 'Prompt';
@@ -986,18 +986,20 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     sections[currentSection].push(line);
   }
 
-  // Helper to group consecutive list items
+  // Helper to group consecutive list items, do not wrap <li> in <p>
   function renderSectionContent(lines: string[]): string {
     let html = '';
     let inList = false;
     for (let i = 0; i < lines.length; i++) {
       const l = lines[i].trim();
+      if (!l) continue;
       if (/^[-*] /.test(l)) {
         if (!inList) { html += '<ul>\n'; inList = true; }
         html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
       } else {
         if (inList) { html += '</ul>\n'; inList = false; }
-        if (l) html += `<p>${markdownToHtml(l)}</p>\n`;
+        // Only add non-empty, non-heading lines
+        if (l) html += `${markdownToHtml(l).trim() ? `<p>${markdownToHtml(l)}</p>\n` : ''}`;
       }
     }
     if (inList) html += '</ul>\n';
@@ -1041,7 +1043,11 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   // TIP (final, after <hr />)
   if (sections['TIP']) {
     html += '<hr />\n';
-    html += sections['TIP'].map(l => `<p><strong>TIP:</strong> ${markdownToHtml(l.replace(/^\*\*?TIP:?\*\*?/, '').trim())}</p>`).join('\n');
+    // Only one TIP, join all lines
+    const tipText = sections['TIP'].map(l => l.replace(/^\*\*?TIP:?\*\*?/, '').replace(/\*\*$/, '').trim()).join(' ');
+    if (tipText) {
+      html += `<p><strong>TIP:</strong> ${markdownToHtml(tipText.replace(/^:+/, '').trim())}</p>\n`;
+    }
   }
   html += '</div>';
   return html;
