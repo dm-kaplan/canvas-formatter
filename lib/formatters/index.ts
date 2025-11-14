@@ -725,6 +725,14 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
             const rawTitle = mdLinkMatch[1].trim();
             const rawUrl = mdLinkMatch[2].trim();
             content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle}</a>`;
+          } else if (content.match(/^\[([^\]]+)\]\(<a [^>]*href=["'](https?:\/\/[^"'>]+)["'][^>]*>[^<]+<\/a>\)$/)) {
+            // Fix for pasted HTML links that became markdown with HTML inside: [Title](<a href="url">url</a>)
+            const htmlLinkMatch = content.match(/^\[([^\]]+)\]\(<a [^>]*href=["'](https?:\/\/[^"'>]+)["'][^>]*>[^<]+<\/a>\)$/);
+            if (htmlLinkMatch) {
+              const rawTitle = htmlLinkMatch[1].trim();
+              const rawUrl = htmlLinkMatch[2].trim();
+              content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle}</a>`;
+            }
           } else {
             // If the line is in 'Title URL' format, render as a single hyperlink with the title as the link text
             const patTitleUrl = /^(.*?)\s+(https?:\/\/\S+)\s*$/;
