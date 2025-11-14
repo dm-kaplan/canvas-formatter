@@ -98,7 +98,7 @@ export default function LearningMaterialsForm({
         if (el.tagName === 'A') {
           const label = (el.textContent || '').trim();
           const href = (el.getAttribute('href') || '').trim();
-          return href ? `${label} ${href}` : label;
+          return href ? `[${label}](${href})` : label;
         }
         if (el.tagName === 'OL') {
           currentListDepth++;
