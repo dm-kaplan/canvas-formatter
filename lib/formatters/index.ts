@@ -1963,7 +1963,7 @@ export function formatContent(
     case 'wfuMeetFaculty':
       formatted = formatWFUMeetFaculty(content, context);
       break;
-    case 'wf_uAssessmentOverview':
+    case 'wfuAssessmentOverview':
       formatted = formatWFUAssessmentOverview(content, context);
       break;
     default:
