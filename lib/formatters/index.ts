@@ -838,7 +838,7 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     'Prompt', 'Discussion Prompt', 'Objectives', 'This discussion aligns',
     'Response to Classmates', 'Instructions', 'Criteria for Success (Grading Rubric)', 'Grading Rubric', 'TIP'
   ];
-  const headingRegex = new RegExp(`^(\*+|_+)?\s*(?:${headingLabels.map(l => l.replace(/[()]/g, '\$&')).join('|')})(:?)(\s*\*+|_+)?\s*$`, 'i');
+  // headingRegex removed (was unused and caused runtime error)
   const lines = content.split(/\r?\n/);
   const sections: { heading: string; lines: string[] }[] = [];
   let currentSection: { heading: string; lines: string[] } | null = null;
