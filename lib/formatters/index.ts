@@ -948,7 +948,7 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     return html;
   }
 
-  // Fallback: parse as Markdown/plain text (previous logic)
+  // Fallback: improved Markdown/plain text parser
   const sectionOrder = [
     'Prompt',
     'This discussion aligns',
@@ -959,70 +959,89 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     'Grading Rubric',
     'TIP'
   ];
+  const headingRegex = /^\*\*?\s*([A-Za-z0-9 ()]+):?\*\*?\s*$/;
   const lines = content.split(/\r?\n/);
-  let current = '';
+  let currentSection = '';
   let sections: Record<string, string[]> = {};
-  let lastHeading = '';
-  for (let raw of lines) {
-    const line = raw.trim();
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
     if (!line) continue;
-    // Find heading
-    const heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase()));
+    // Detect heading (with or without **, with or without colon)
+    let headingMatch = line.match(headingRegex);
+    let heading = '';
+    if (headingMatch) {
+      heading = sectionOrder.find(h => headingMatch![1].toLowerCase().startsWith(h.toLowerCase())) || '';
+    } else {
+      heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase())) || '';
+    }
     if (heading) {
-      lastHeading = heading;
-      if (!sections[heading]) sections[heading] = [];
-      // If there's content after the heading, add it
-      const after = line.replace(new RegExp(`^${heading}:?\\s*`, 'i'), '').trim();
-      if (after) sections[heading].push(after);
+      currentSection = heading;
+      if (!sections[currentSection]) sections[currentSection] = [];
       continue;
     }
-    if (lastHeading) {
-      sections[lastHeading].push(line);
-    } else {
-      // If no heading yet, treat as Prompt
-      lastHeading = 'Prompt';
-      if (!sections['Prompt']) sections['Prompt'] = [];
-      sections['Prompt'].push(line);
+    if (!currentSection) {
+      currentSection = 'Prompt';
+      if (!sections[currentSection]) sections[currentSection] = [];
     }
+    sections[currentSection].push(line);
   }
 
-  // Compose HTML in required order
+  // Helper to group consecutive list items
+  function renderSectionContent(lines: string[]): string {
+    let html = '';
+    let inList = false;
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i].trim();
+      if (/^[-*] /.test(l)) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
+      } else {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        if (l) html += `<p>${markdownToHtml(l)}</p>\n`;
+      }
+    }
+    if (inList) html += '</ul>\n';
+    return html;
+  }
+
   let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
   // Prompt
   if (sections['Prompt']) {
     html += '<h3>Prompt:</h3>\n';
-    html += sections['Prompt'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
+    html += renderSectionContent(sections['Prompt']);
   }
   // This discussion aligns/Objectives
   if (sections['This discussion aligns'] || sections['Objectives']) {
     html += '<p>This discussion aligns with the following module objectives:</p>\n';
     const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
     if (objectives.length) {
-      html += '<ul>\n' + objectives.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n') + '\n</ul>\n';
+      html += '<ul>\n';
+      objectives.forEach(l => {
+        html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
+      });
+      html += '</ul>\n';
     }
   }
   // Response to Classmates
   if (sections['Response to Classmates']) {
     html += '<h3>Response to Classmates:</h3>\n';
-    html += sections['Response to Classmates'].map(l => `<p>${markdownToHtml(l)}</p>`).join('\n');
+    html += renderSectionContent(sections['Response to Classmates']);
   }
   // Instructions
   if (sections['Instructions']) {
-    html += '<h3>Instructions:</h3>\n<ul>\n';
-    html += sections['Instructions'].map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
-    html += '\n</ul>\n';
+    html += '<h3>Instructions:</h3>\n';
+    html += renderSectionContent(sections['Instructions']);
   }
   // Criteria for Success (Grading Rubric) or Grading Rubric
   if (sections['Criteria for Success (Grading Rubric)'] || sections['Grading Rubric']) {
-    html += '<h3>Criteria for Success (Grading Rubric):</h3>\n<ul>\n';
+    html += '<h3>Criteria for Success (Grading Rubric):</h3>\n';
     const rubric = (sections['Criteria for Success (Grading Rubric)'] || []).concat(sections['Grading Rubric'] || []);
-    html += rubric.map(l => `<li>${markdownToHtml(l)}</li>`).join('\n');
-    html += '\n</ul>\n';
+    html += renderSectionContent(rubric);
   }
   // TIP (final, after <hr />)
   if (sections['TIP']) {
     html += '<hr />\n';
-    html += sections['TIP'].map(l => `<p><strong>TIP:</strong> ${markdownToHtml(l)}</p>`).join('\n');
+    html += sections['TIP'].map(l => `<p><strong>TIP:</strong> ${markdownToHtml(l.replace(/^\*\*?TIP:?\*\*?/, '').trim())}</p>`).join('\n');
   }
   html += '</div>';
   return html;
