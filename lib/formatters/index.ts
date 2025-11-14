@@ -365,15 +365,10 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
   // --- Helpers ---
   const isBareUrl = (s: string) => /^(https?:\/\/\S+)/i.test(s.trim());
-  const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank">${url}</a>`);
+  const autolink = (s: string) => s.replace(/(https?:\/\/[^\s)<]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
   const isSection = (s: string, re: RegExp) => re.test(s.trim());
   
-  // --- FIX 1: Updated regex for headers ---
-  // This is more robust and handles odd bolding (e.g., ****)
-  const h3Names = [
-    /^[^\w]*Required\s+Resources[^\w]*:?\s*$/i, 
-    /^[^\w]*Optional\s+Resources[^\w]*:?\s*$/i
-  ];
+  const h3Names = [/^[^\w]*Required\s+Resources[^\w]*:?\s*$/i, /^[^\w]*Optional\s+Resources[^\w]*:?\s*$/i];
   const h4Names = [
     /^[^\w]*Reading(?:s)?[^\w]*:?\s*$/i, 
     /^[^\w]*Video(?:s)?[^\w]*:?\s*$/i, 
@@ -383,9 +378,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     /^[^\w]*Websites[^\w]*:?\s*$/i, 
     /^[^\w]*Case\s+Studies[^\w]*:?\s*$/i,
     /^[^\w]*Textbook Readings[^\w]*:?\s*$/i,
-    // --- THIS IS THE FIX ---
     /^[^\w]*Experimenting\s+with\s+an\s+LLM[^\w]*:?\s*$/i
-    // --- END FIX ---
   ];
   
   const youtubeRe = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
@@ -406,7 +399,6 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
    * Manages <ul> tags based on line indentation.
    */
   const handleIndent = (raw: string) => {
-    // --- NEW LOGIC ---
     const isExerciseLine = /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
     let indent = raw.match(/^\s*/)?.[0].length || 0;
     
@@ -420,13 +412,11 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
     const currentIndent = indentStack[indentStack.length - 1];
 
-    // --- NEW LOGIC ---
     // If this is the Exercise line and it's less indented than the
     // current level, force it to *be* at the current level.
     if (isExerciseLine && indent < currentIndent) {
         indent = currentIndent;
     }
-    // --- END NEW LOGIC ---
 
     if (indent > currentIndent) {
       // Open new nested level
@@ -437,6 +427,13 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       while (indentStack.length > 0 && indent < indentStack[indentStack.length - 1]) {
         bodyHtml += '</ul>\n';
         indentStack.pop();
+      }
+      // If we've bottomed out and the new indent is *still* lower,
+      // reset the stack to this new, lower base indent.
+      if (indentStack.length === 0 || indent < indentStack[indentStack.length - 1]) {
+         indentStack = [indent];
+         // Don't re-open <ul> here, it's handled by the fact that
+         // inList is true and the stack is now correct.
       }
     }
     // if indent === currentIndent, do nothing (same level)
@@ -479,51 +476,47 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // Skip lines that are just markdown characters (e.g. "____")
     if (/^[\*_]+$/.test(line)) continue;
 
-    // --- NEW LOGIC V3 ---
-    // A line is a bullet if it's the special "Exercise:" line
+    // --- UPDATED isBulletLine LOGIC ---
+    // A line is a bullet if it starts with -, •, or a number AND is followed by a space.
+    // OR if it starts with * AND is followed by a space (to distinguish from **bold**).
+    // OR if it's the special **Exercise:** line.
+    const isStandardBullet = /^\s*([-•]|\d+[\.)])\s+/.test(raw) || /^\s*\*\s+/.test(raw);
     const isExerciseLine = /^\s*(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i.test(raw);
+    const isBulletLine = isStandardBullet || isExerciseLine;
     
-    // A line is a bullet if it starts with a bullet marker
-    const isStandardBullet = /^\s*([-•\*]|\d+[\.)])\s+/.test(raw);
-
-    // A line is a bullet if it's either
-    const isBulletLine = isExerciseLine || isStandardBullet;
-
-    // An H4 is a line that is NOT a bullet, AND ends with a colon, AND is not a URL
-    const isGenericH4 = !isBulletLine && 
-                        !/https?:\/\//.test(line) && 
-                        /.+:\s*$/.test(line);
-    // --- END NEW LOGIC V3 ---
-
-
     // --- 1. HEADING DETECTION ---
 
     // Check H3 (e.g., "Required Resources")
-    // Use the new robust regex
     if (h3Names.some(re => isSection(line, re))) {
       closeList();
       flushPendingVideo();
-      const heading = line.replace(/[^\w\s]/g, '').trim().replace(/:$/, ''); // Simple clean
+      // Clean leading/trailing junk, but preserve internal punctuation
+      const heading = line.replace(/^[^\w]*/, '').replace(/[^\w]*:?\s*$/, '');
       bodyHtml += `<h3>${heading}</h3>\n`;
       currentListType = null;
       continue;
     }
 
     // Check H4 (e.g., "Readings:", "Videos:", "Experimenting with an LLM:")
-    // Use the new isGenericH4 flag
-    if (h4Names.some(re => isSection(line, re)) || isGenericH4) {
+    const isKnownH4 = h4Names.some(re => isSection(line, re));
+    // A generic H4 is a non-bullet, non-url, line ending in a colon.
+    const isGenericH4 = !isBulletLine && 
+                        !/https?:\/\//.test(line) && 
+                        /.+:\s*$/.test(line);
+                        
+    if (isKnownH4 || isGenericH4) {
       closeList();
       flushPendingVideo();
-      const name = line.replace(/[^\w\s]/g, '').trim().replace(/:$/, ''); // Simple clean
+      // Clean leading/trailing junk, but preserve internal punctuation
+      const name = line.replace(/^[^\w]*/, '').replace(/[^\w]*:?\s*$/, '');
       bodyHtml += `<h4>${name}</h4>\n`;
       
       // Set the parser mode for the content *following* this heading
-      // Use the robust regex again to check
-      if (/^[^\w]*Video/i.test(line)) {
+      if (/^(\*\*|__)*Video/i.test(line)) {
         currentListType = 'videos';
-      } else if (/^[^\w]*Textbook Readings/i.test(line)) {
+      } else if (/^(\*\*|__)*Textbook Readings/i.test(line)) {
         currentListType = 'textbook';
-      } else if (/^[^\w]*Reading/i.test(line)) {
+      } else if (/^(\*\*|__)*Reading/i.test(line)) {
         currentListType = 'readings';
       } else {
         currentListType = 'generic'; // "Experimenting...", "Articles:", etc.
@@ -534,7 +527,6 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     // --- 2. CONTENT PARSING ---
 
     // A. Handle "Videos" section (special logic)
-    // This logic is now correctly triggered because "**Video:**" is identified as H4
     if (currentListType === 'videos') {
       closeList(); // Videos are not in a <ul>
       lastLineWasTitleWithoutUrl = false;
@@ -613,7 +605,6 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
 
     // B. Handle "Readings", "Textbook", or "Generic" sections (all use list logic)
     if (currentListType === 'readings' || currentListType === 'textbook' || currentListType === 'generic') {
-      // This logic is now triggered for "**Exercise:**" because isBulletLine is true
       if (!isBulletLine) {
          // This is a paragraph *inside* a section (e.g., an intro).
          closeList(); // Stop any list.
@@ -624,31 +615,24 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       // It's a bullet. Handle indentation.
       handleIndent(raw);
       
-      // Clean the line, removing standard bullet markers
-      const cleanLine = line.replace(/^[-•\*]\s*/, '').replace(/^\d+[\.)]\s+/, '');
-
-      // Special formatting for bolded "Exercise:"
-      // This will now catch "**Exercise:**" as cleanLine will be "**Exercise:** Ask..."
-      let content = autolink(cleanLine).replace(/^(\*\*|__)*\s*Exercise\s*(\*\*|__)*:/i, '<strong>Exercise:</strong>');
+      // Clean the line of bullet markers
+      let cleanLine = line.replace(/^[-•\*]\s*/, '').replace(/^\d+[\.)]\s+/, '');
       
-      // --- NEW FIX: Convert markdown bold/italic ---
-      const exercisePrefix = '<strong>Exercise:</strong>';
-      if (content.startsWith(exercisePrefix)) {
-          // For exercise line, convert markdown *after* the strong tag
-          let rest = content.substring(exercisePrefix.length);
-          rest = rest
-              .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  // **bold**
-              .replace(/\*([^*]+)\*/g, '<em>$1</em>');             // *italic*
-          content = exercisePrefix + rest;
-      } else {
-           // For all other lines, convert markdown
-           content = content
-              .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')  // **bold**
-              .replace(/\*([^\*]+)\*/g, '<em>$1</em>');             // *italic*
-      }
-      // --- END NEW FIX ---
+      // Convert markdown bold/italic
+      let content = cleanLine
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold**
+          .replace(/\*(.*?)\*/g, '<em>$1</em>');       // *italic*
 
-      // Handle "Title URL" pattern
+      // Special formatting for "Exercise:" (which is already bolded)
+      content = content.replace(/^(<strong>Exercise:<\/strong>)/i, '<strong>Exercise:</strong>');
+      
+      // Autolink, but be careful not to link inside the href attribute of an existing link
+      // A simple autolink for content that isn't already <a> tagged
+      if (!/<\s*a\s*href/i.test(content)) {
+          content = autolink(content);
+      }
+      
+      // Handle "Title URL" pattern, but only if not already linked
       const patWithDesc = /^(.*?)\s+(https?:\/\/\S+):(.*)$/; // Title URL: Desc
       const patSimple = /^(.*?)\s+(https?:\/\/\S+)\s*$/;  // Title URL
       
@@ -665,8 +649,8 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
       } else if (mSimple) {
           const rawTitle = mSimple[1].trim();
           const rawUrl = mSimple[2].trim().replace(/:$/,'');
-          // Don't re-link if it's already the "Exercise:" line
-          if (!content.startsWith('<strong>Exercise:')) {
+          // Don't re-link if it's already the "Exercise:" line or already contains a link
+          if (!content.startsWith('<strong>Exercise:</strong>') && !/<\s*a\s*href/i.test(content)) {
              content = `<a href="${rawUrl}" target="_blank" rel="noopener">${rawTitle || rawUrl}</a>`;
           }
       }
@@ -706,7 +690,7 @@ function formatWFULearningMaterials(content: string, context: TemplateContext = 
     <div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <p>The following resources will help you master the material and prepare for the module assessments.<br /><strong></strong></p>
-            <p><strong>IMPORTANT:</strong> It can take up to 20 hours to study the material in this module and to successfully complete the assessments. Waiting until the weekend to consume all the material can lead to poor outcomes as you will not have sufficient time to absorb the content. If you plan out your week and complete a little bit every day, you will fare far better and have adequate time to seek answers to questions.</p>
+            <p><strong>IMPORTANT:</strong> It can take you up to 20 hours to study the material in this module and to successfully complete the assessments. Waiting until the weekend to consume all the material can lead to poor outcomes as you will not have sufficient time to absorb the content. If you plan out your week and complete a little bit every day, you will fare far better and have adequate time to seek answers to questions.</p>
             ${html}
         </div>
     </div>
@@ -1979,7 +1963,7 @@ export function formatContent(
     case 'wfuMeetFaculty':
       formatted = formatWFUMeetFaculty(content, context);
       break;
-    case 'wfuAssessmentOverview':
+    case 'wf_uAssessmentOverview':
       formatted = formatWFUAssessmentOverview(content, context);
       break;
     default:
@@ -2048,7 +2032,7 @@ export function getAvailableTemplates(): Array<{
       useCase: 'WFU module learning materials pages with required/optional resources',
     },
     {
-      id: 'wfuDiscussion',
+      id:'wfuDiscussion',
       name: 'WFU Discussion',
       description: 'Wake Forest SPS discussion page format',
       useCase: 'WFU discussion pages with consistent formatting',
