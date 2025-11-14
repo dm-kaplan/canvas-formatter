@@ -1492,9 +1492,6 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
       html += '</ol>\n';
     }
     return html;
-  };
-
-  // Render sections
   const assignmentTitle = context.assignmentTitle || context.title || 'Assignment';
   let body = `<h2>${assignmentTitle}</h2>`;
   for (const s of sections) {
