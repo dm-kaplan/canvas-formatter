@@ -1554,7 +1554,7 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
           .replace(/\*([^*]+)\*/g, '<em>$1</em>');             // *italic*
         
         // Bold colon-prefix in the title (if not already bolded)
-        if (/^[^:<]    {1,120}:\s/.test(titleHtml) && !/^<strong>[^<]+:<\/strong>/.test(titleHtml)) {
+        if (/^[^:<]{1,120}:\s/.test(titleHtml) && !/^<strong>[^<]+:<\/strong>/.test(titleHtml)) {
           titleHtml = titleHtml.replace(/^([^:]{1,120}):\s*/, '<strong>$1:</strong> ');
         }
         
@@ -1963,7 +1963,7 @@ export function formatContent(
     case 'wfuMeetFaculty':
       formatted = formatWFUMeetFaculty(content, context);
       break;
-    case 'wf_uAssessmentOverview':
+    case 'wfuAssessmentOverview':
       formatted = formatWFUAssessmentOverview(content, context);
       break;
     default:
