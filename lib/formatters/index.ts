@@ -120,28 +120,33 @@ function formatWFUCourseSyllabus(content: string, context: TemplateContext = {})
   const syllabusFileName = context.syllabusFileName || 'Syllabus.docx';
   const office = context.office || 'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
 
-    const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+      // Remove any accidental duplicate 'Adjunct Professor of Practice' in credentials
+      let credentials = instructorCredentials.trim();
+      if (credentials.toLowerCase().includes('adjunct professor of practice')) {
+      credentials = credentials.replace(/,?\s*adjunct professor of practice\s*/i, '').trim();
+      }
+        const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+        <div class="grid-row">
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+              <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <p class="WFU-SubpageHeader">${courseName}</p>
-        <h2 class="WFU-SubpageSubheader">Syllabus</h2>
-        <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName}${instructorCredentials ? ', ' + instructorCredentials : ''}, Adjunct Professor of Practice<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong>${instructorEmail}<strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a><strong></strong></p>
-        <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
-      </div>
-    </div>
-    <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">&nbsp;</footer>
-      </div>
-    </div>
-  </div>`;
+        <div class="grid-row">
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseName}</p>
+            <h2 class="WFU-SubpageSubheader">Syllabus</h2>
+            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName}${credentials ? ', ' + credentials : ''}, Adjunct Professor of Practice<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong><a href="mailto:${instructorEmail}">${instructorEmail}</a><strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a><strong></strong></p>
+            <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="col-xs-12">
+            <footer class="WFU-footer">&nbsp;</footer>
+          </div>
+        </div>
+      </div>`;
   return html;
 }
 function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
