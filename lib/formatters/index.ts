@@ -182,7 +182,7 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
       <p>The instructor facilitating your online course may or may not be the lead faculty/course developer. Be assured that this instructor was chosen to meet very high standards and is a professional or acclaimed educator in their field. They will introduce themselves in the course announcements and will be responsible for answering questions, facilitating the synchronous sessions, providing feedback, and grading. To message the instructor/facilitator, use the message feature within Canvas.</p>
     </div>
     <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-      <div class="WFU-Faculty">
+      <div class="">
         <p><img style="width: 450px; margin-left: auto; margin-right: auto; padding: 0px;" src="${imgSrc}" alt="" data-api-endpoint="${imgApi}" data-api-returntype="File" /></p>
       </div>
     </div>
