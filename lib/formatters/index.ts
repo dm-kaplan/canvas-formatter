@@ -189,7 +189,7 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
   </div>
   <div class="grid-row">
     <div class="col-xs-12">
-      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      <div class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</div>
     </div>
   </div>
 </div>`;
@@ -315,6 +315,7 @@ function sanitizeHtml(html: string): string {
       'ul', 'ol', 'li',
       'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
       'blockquote', 'code', 'pre',
+      'footer',
     ],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'rel', 'class', 'id', 'style'],
   });
