@@ -130,6 +130,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
           >
             <h3 className="text-lg font-medium text-gray-900 mb-4">Generated HTML</h3>
             <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Click "Copy HTML".<br/>
+                Go to a Canvas Assignment.<br/>
+                Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
+                Paste this code into the editor.
+              </p>
               <textarea
                 ref={htmlTextareaRef}
                 readOnly

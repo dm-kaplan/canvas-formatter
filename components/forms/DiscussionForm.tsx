@@ -339,7 +339,7 @@ export default function DiscussionForm({
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
                 Click "Copy HTML".<br/>
-                Go to a Canvas page (or Discussion, Assignment depending on the form).<br/>
+                Go to a Canvas Discussion.<br/>
                 Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
                 Paste this code into the editor.
               </p>
