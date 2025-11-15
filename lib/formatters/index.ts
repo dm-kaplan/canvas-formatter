@@ -255,6 +255,7 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
 </div>`;
 }
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
+  const courseName = context.courseName || context.title || 'Course Name';
   const lines: string[] = (content || '').split(/\r?\n/);
   const sectionTitles: string[] = [
     'Discussions',
@@ -264,7 +265,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     'Course Reflection',
     'Reflection'
   ];
-  const htmlSections: string[] = [];
+  let htmlSections: string[] = [];
   let currentSection: string | null = null;
   let buffer: string[] = [];
   function flushSection() {
@@ -279,8 +280,8 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
       });
       htmlSections.push(
         `<h3>${currentSection}</h3>\n` +
-        (paras.length ? `<p>${paras.join(' ')}<\/p>\n` : '') +
-        (list.length ? `<ul>\n${list.map((item: string) => `<li>${item.replace(/^[-*•]\s*/, '')}<\/li>`).join('\n')}\n<\/ul>\n` : '')
+        (paras.length ? paras.map(p => `<p>${p}</p>`).join('\n') : '') +
+        (list.length ? `<ul>\n${list.map((item: string) => `<li>${item.replace(/^[-*•]\s*/, '')}</li>`).join('\n')}\n</ul>\n` : '')
       );
     }
     buffer = [];
@@ -314,7 +315,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     </div>
     <div class="grid-row">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <p class="WFU-SubpageHeader">${courseName}</p>
+        <p class="WFU-SubpageHeader"><span>${courseName}</span></p>
         <h2 class="WFU-SubpageSubheader">Overview of Assessments</h2>
         ${overviewHtml}
       </div>
