@@ -1,10 +1,8 @@
-  
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
 // --- UPDATED ---
 // Import formatContent and TemplateContext
 import { 
-  previewContent, 
   formatContent, 
   type TemplateType, 
   type TemplateContext 
