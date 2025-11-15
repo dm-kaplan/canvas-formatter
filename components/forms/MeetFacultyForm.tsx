@@ -322,6 +322,14 @@ export default function MeetFacultyForm({
                 className="w-full h-64 p-2 border border-gray-300 rounded-md font-mono text-xs bg-gray-50"
                 value={generatedHtml}
               />
+              <div className="border border-gray-200 rounded bg-gray-50 p-4">
+                <div className="text-xs text-gray-500 mb-2">Preview:</div>
+                <div
+                  className="bg-white p-4 rounded shadow-inner overflow-auto"
+                  style={{ maxHeight: 400 }}
+                  dangerouslySetInnerHTML={{ __html: generatedHtml }}
+                />
+              </div>
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={copyToClipboard}
