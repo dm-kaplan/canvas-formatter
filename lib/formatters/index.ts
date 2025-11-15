@@ -1,3 +1,128 @@
+import { marked } from 'marked';
+import DOMPurify from 'isomorphic-dompurify';
+
+export interface TemplateContext {
+  title?: string;
+  courseName?: string;
+  courseCode?: string;
+  instructorName?: string;
+  instructorCredentials?: string;
+  instructorEmail?: string;
+  syllabusFileName?: string;
+  office?: string;
+  facultyName?: string;
+  facultyBio?: string;
+  facultyImageNumber?: string;
+  courseId?: string;
+  moduleTitles?: string[];
+  [key: string]: any;
+
+
+
+
+
+
+
+
+}
+
+function markdownToHtml(content: string): string {
+  marked.setOptions({ gfm: true, breaks: true });
+  return marked(content) as string;
+}
+// ...existing code...
+// Ensure formatWFUCourseSyllabus is declared and exported
+export function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
+  const courseName = context.courseName || context.title || 'Course Name';
+  const instructorName = context.instructorName || 'Instructor Name';
+  const instructorCredentials = context.instructorCredentials || '';
+  const instructorEmail = context.instructorEmail || '';
+  const syllabusFileName = context.syllabusFileName || 'Syllabus.docx';
+  const office = context.office || 'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
+
+  // Remove any accidental duplicate 'Adjunct Professor of Practice' in credentials
+  let credentials = instructorCredentials.trim();
+  if (credentials.toLowerCase().includes('adjunct professor of practice')) {
+    credentials = credentials.replace(/,?\s*adjunct professor of practice\s*/i, '').trim();
+  }
+  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <p class="WFU-SubpageHeader">${courseName}</p>
+        <h2 class="WFU-SubpageSubheader">Syllabus</h2>
+        <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName}${credentials ? ', ' + credentials : ''}, Adjunct Professor of Practice<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong><a href="mailto:${instructorEmail}">${instructorEmail}</a><strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a><strong></strong></p>
+        <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
+    </div>
+  </div>`;
+export function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
+  const courseTitle = context.courseName || context.title || 'Course Title';
+  const courseCode = context.courseCode || '';
+  const description = content ? markdownToHtml(content) : '';
+  const modules = Array.isArray(context.moduleTitles) ? context.moduleTitles : [];
+
+  // Helper to generate module links (replace # with real Canvas URLs if available)
+  function moduleLink(idx: number, title: string) {
+    return `<a title="Module ${idx + 1}" href="#">Module ${idx + 1}: ${title}</a>`;
+  }
+
+  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+        </div>
+      </div>
+      <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <p class="WFU-SubpageHeader">${courseTitle}</p>
+          <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+          <h3>Introduction to ${courseCode ? courseCode + ' ' : ''}${courseTitle}</h3>
+          ${description}
+          <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
+          <ul>
+            <li>Getting Started&nbsp;
+              <ul>
+                <li>An introduction to the course instructor&nbsp;</li>
+                <li>An overview of assessments</li>
+                <li>Other important information about the course&nbsp;&nbsp;</li>
+              </ul>
+            </li>
+            <li>Tools for Success
+              <ul>
+                <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
+              </ul>
+            </li>
+            <li>Opportunities for Engagement
+              <ul>
+                <li>Ways to engage with your peers, instructors, and the university</li>
+              </ul>
+            </li>
+          </ul>
+          <h3><a title="Getting Started" href="#">Module</a></h3>
+        </div>
+        ${modules.map((m: string, i: number) => `<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">${moduleLink(i, m)}</div>`).join('\n')}
+      </div>
+    </div>
+  </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    </div>
+  </div>`;
+// End of file
 /**
  * Returns available Canvas formatter templates for UI selection
  */
@@ -60,96 +185,29 @@ export function getAvailableTemplates() {
   ];
 }
 // --- STUBS FOR MISSING FORMATTER FUNCTIONS ---
-function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
-    const courseTitle = context.courseName || context.title || 'Course Title';
-    const courseCode = context.courseCode || '';
-    const description = content ? markdownToHtml(content) : '';
-    const modules = Array.isArray(context.moduleTitles) ? context.moduleTitles : [];
-
-    // Helper to generate module links (replace # with real Canvas URLs if available)
-    function moduleLink(idx: number, title: string) {
-    return `<a title="Module ${idx + 1}" href="#">Module ${idx + 1}: ${title}</a>`;
-    }
-
-    let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
-        </div>
-      </div>
-      <div class="grid-row">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-          <p class="WFU-SubpageHeader">${courseTitle}</p>
-          <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
-          <h3>Introduction to ${courseCode ? courseCode + ' ' : ''}${courseTitle}</h3>
-          ${description}
-          <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
-          <ul>
-            <li>Getting Started&nbsp;</li>
-            <ul>
-              <li>An introduction to the course instructor&nbsp;</li>
-              <li>An overview of assessments</li>
-              <li>Other important information about the course&nbsp;&nbsp;</li>
-            </ul>
-            <li>Tools for Success</li>
-            <ul>
-              <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
-            </ul>
-            <li>Opportunities for Engagement</li>
-            <ul>
-              <li>Ways to engage with your peers, instructors, and the university</li>
-            </ul>
-          </ul>
-          <h3><a title="Getting Started" href="#">Module</a></h3>
-        </div>
-        ${modules.map((m, i) => `<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">${moduleLink(i, m)}</div>`).join('\n')}
-      </div>
-    </div>
-  </div>
-  <div class="grid-row">
-    <div class="col-xs-12">
-      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-    </div>
-  </div>`;
-    return html;
-}
-function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
-  const courseName = context.courseName || context.title || 'Course Name';
-  const instructorName = context.instructorName || 'Instructor Name';
-  const instructorCredentials = context.instructorCredentials || '';
-  const instructorEmail = context.instructorEmail || '';
-  const syllabusFileName = context.syllabusFileName || 'Syllabus.docx';
-  const office = context.office || 'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
-
-      // Remove any accidental duplicate 'Adjunct Professor of Practice' in credentials
-      let credentials = instructorCredentials.trim();
-      if (credentials.toLowerCase().includes('adjunct professor of practice')) {
-      credentials = credentials.replace(/,?\s*adjunct professor of practice\s*/i, '').trim();
-      }
-        const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-        <div class="grid-row">
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-            <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-              <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
-            </div>
-          </div>
-        </div>
-        <div class="grid-row">
-          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <p class="WFU-SubpageHeader">${courseName}</p>
-            <h2 class="WFU-SubpageSubheader">Syllabus</h2>
-            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>&nbsp;${instructorName}${credentials ? ', ' + credentials : ''}, Adjunct Professor of Practice<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong><a href="mailto:${instructorEmail}">${instructorEmail}</a><strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a><strong></strong></p>
-            <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
-          </div>
-        </div>
-        <div class="grid-row">
-          <div class="col-xs-12">
-            <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-          </div>
-        </div>
-      </div>`;
-  return html;
+// function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
+//     const courseName = context.courseName || context.title || 'Course Name';
+//     // Split content into lines and parse for section headings
+//     const lines: string[] = (content || '').split(/\r?\n/);
+//     const sectionTitles = [
+//       'Discussions',
+//       'Assignments',
+//       'Project',
+//       'Course Project',
+//       'Course Reflection',
+//       'Reflection'
+//     ];
+//     const htmlSections: string[] = [];
+//     let currentSection: string | null = null;
+//     let buffer: string[] = [];
+//     function flushSection() {
+//       if (!currentSection && buffer.length) {
+//         htmlSections.push(buffer.map((l: string) => `<p>${l}</p>`).join('\n'));
+//       } else if (currentSection && buffer.length) {
+//         // Separate out list items and paragraphs
+//         let paras: string[] = [], list: string[] = [];
+//         buffer.forEach((l: string) => {
+//           if (/^[-*•]/.test(l.trim())) list.push(l);
 }
 function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
     // Extract fields from context
@@ -197,8 +255,54 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
 </div>`;
 }
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
-  const courseName = context.courseName || context.title || 'Course Name';
-  const overviewHtml = content ? markdownToHtml(content) : '';
+  const lines: string[] = (content || '').split(/\r?\n/);
+  const sectionTitles: string[] = [
+    'Discussions',
+    'Assignments',
+    'Project',
+    'Course Project',
+    'Course Reflection',
+    'Reflection'
+  ];
+  const htmlSections: string[] = [];
+  let currentSection: string | null = null;
+  let buffer: string[] = [];
+  function flushSection() {
+    if (!currentSection && buffer.length) {
+      htmlSections.push(buffer.map((l: string) => `<p>${l}</p>`).join('\n'));
+    } else if (currentSection && buffer.length) {
+      // Separate out list items and paragraphs
+      let paras: string[] = [], list: string[] = [];
+      buffer.forEach((l: string) => {
+        if (/^[-*•]/.test(l.trim())) list.push(l);
+        else paras.push(l);
+      });
+      htmlSections.push(
+        `<h3>${currentSection}</h3>\n` +
+        (paras.length ? `<p>${paras.join(' ')}<\/p>\n` : '') +
+        (list.length ? `<ul>\n${list.map((item: string) => `<li>${item.replace(/^[-*•]\s*/, '')}<\/li>`).join('\n')}\n<\/ul>\n` : '')
+      );
+    }
+    buffer = [];
+  }
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (!line) continue;
+    // Section heading detection (case-insensitive, allow for colon)
+    const heading = sectionTitles.find(t => line.toLowerCase().startsWith(t.toLowerCase())) || null;
+    if (heading) {
+      flushSection();
+      currentSection = heading;
+      // Remove heading from line (e.g., 'Assignments: ...')
+      line = line.replace(new RegExp(`^${heading}:?\\s*`, 'i'), '');
+      if (line) buffer.push(line);
+      continue;
+    }
+    buffer.push(line);
+  }
+  flushSection();
+
+  const overviewHtml: string = htmlSections.join('\n');
 
   return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
@@ -221,7 +325,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
       </div>
     </div>
   </div>`;
-}
+// End of formatWFUAssessmentOverview
 /**
  * Main content formatting dispatcher
  */
@@ -998,107 +1102,6 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
  * Same HTML structure for all modules, only title changes
  */
 function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
-  // Try to parse as HTML with headers first
-  let isHtml = /<\/?[a-z][\s\S]*>/i.test(content);
-  if (isHtml) {
-    let doc = document.createElement('div');
-    doc.innerHTML = content;
-    const sectionOrder = [
-      'Prompt',
-      'This discussion aligns',
-      'Objectives',
-      'Response to Classmates',
-      'Instructions',
-      'Criteria for Success (Grading Rubric)',
-      'Grading Rubric',
-      'TIP'
-    ];
-    let sections: Record<string, HTMLElement[]> = {};
-    let current = '';
-    Array.from(doc.children).forEach(el => {
-      if (/^h[1-6]$/i.test(el.tagName)) {
-        const headingText = el.textContent?.replace(/:$/, '').trim() || '';
-        const heading = sectionOrder.find(h => headingText.toLowerCase().startsWith(h.toLowerCase()));
-        if (heading) {
-          current = heading;
-          if (!sections[current]) sections[current] = [];
-          return;
-        }
-      }
-      if (current) {
-        sections[current].push(el as HTMLElement);
-      } else {
-        // If no heading yet, treat as Prompt
-        current = 'Prompt';
-        if (!sections['Prompt']) sections['Prompt'] = [];
-        sections['Prompt'].push(el as HTMLElement);
-      }
-    });
-
-    // Compose HTML in required order
-    let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
-    // Prompt
-    if (sections['Prompt']) {
-      html += '<h3>Prompt:</h3>\n';
-      html += sections['Prompt'].map(el => el.outerHTML).join('\n');
-    }
-    // This discussion aligns/Objectives
-    if (sections['This discussion aligns'] || sections['Objectives']) {
-      html += '<p>This discussion aligns with the following module objectives:</p>\n';
-      const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
-      if (objectives.length) {
-        html += '<ul>\n';
-        objectives.forEach(el => {
-          if (el.tagName === 'UL' || el.tagName === 'OL') {
-            html += el.outerHTML + '\n';
-          } else {
-            html += `<li>${el.textContent}</li>\n`;
-          }
-        });
-        html += '</ul>\n';
-      }
-    }
-    // Response to Classmates
-    if (sections['Response to Classmates']) {
-      html += '<h3>Response to Classmates:</h3>\n';
-      html += sections['Response to Classmates'].map(el => el.outerHTML).join('\n');
-    }
-    // Instructions
-    if (sections['Instructions']) {
-      html += '<h3>Instructions:</h3>\n<ul>\n';
-      sections['Instructions'].forEach(el => {
-        if (el.tagName === 'UL' || el.tagName === 'OL') {
-          html += el.innerHTML + '\n';
-        } else {
-          html += `<li>${el.textContent}</li>\n`;
-        }
-      });
-      html += '</ul>\n';
-    }
-    // Criteria for Success (Grading Rubric) or Grading Rubric
-    if (sections['Criteria for Success (Grading Rubric)'] || sections['Grading Rubric']) {
-      html += '<h3>Criteria for Success (Grading Rubric):</h3>\n<ul>\n';
-      const rubric = (sections['Criteria for Success (Grading Rubric)'] || []).concat(sections['Grading Rubric'] || []);
-      rubric.forEach(el => {
-        if (el.tagName === 'UL' || el.tagName === 'OL') {
-          html += el.innerHTML + '\n';
-        } else {
-          html += `<li>${el.textContent}</li>\n`;
-        }
-      });
-      html += '</ul>\n';
-    }
-    // TIP (final, after <hr />)
-    if (sections['TIP']) {
-      html += '<hr />\n';
-      sections['TIP'].forEach(el => {
-        html += `<p><strong>TIP:</strong> ${el.textContent}</p>\n`;
-      });
-    }
-    html += '</div>';
-    return html;
-  }
-
   // Fallback: improved Markdown/plain text parser
   const sectionOrder = [
     'Prompt',
@@ -1110,7 +1113,6 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     'Grading Rubric',
     'TIP'
   ];
-  // More robust heading regex: allow for leading/trailing **, :, and whitespace
   const headingRegex = /^\s*\*{0,2}\s*([A-Za-z0-9 ()]+)\s*:?[\s\*]*$/;
   const lines = content.split(/\r?\n/);
   let currentSection = '';
@@ -1118,18 +1120,17 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     if (!line) continue;
-    // Detect heading (with or without **, with or without colon)
     let headingMatch = line.match(headingRegex);
     let heading = '';
     if (headingMatch) {
-      heading = sectionOrder.find(h => headingMatch![1].toLowerCase().startsWith(h.toLowerCase())) || '';
+      heading = sectionOrder.find(h => headingMatch[1].toLowerCase().startsWith(h.toLowerCase())) || '';
     } else {
       heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase())) || '';
     }
     if (heading) {
       currentSection = heading;
       if (!sections[currentSection]) sections[currentSection] = [];
-      continue; // Do NOT include heading line as content
+      continue;
     }
     if (!currentSection) {
       currentSection = 'Prompt';
@@ -1138,21 +1139,18 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
     sections[currentSection].push(line);
   }
 
-  // Helper to group consecutive list items, do not wrap <li> in <p>
   function renderSectionContent(lines: string[]): string {
     let html = '';
     let inList = false;
     for (let i = 0; i < lines.length; i++) {
       const l = lines[i].trim();
       if (!l) continue;
-      // Never treat heading lines as content
       if (headingRegex.test(l)) continue;
       if (/^[-*] /.test(l)) {
         if (!inList) { html += '<ul>\n'; inList = true; }
         html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
       } else {
         if (inList) { html += '</ul>\n'; inList = false; }
-        // Only add non-empty, non-heading lines
         const htmlLine = markdownToHtml(l).trim();
         if (htmlLine) html += `<p>${htmlLine}</p>\n`;
       }
@@ -1162,24 +1160,20 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   }
 
   let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
-  // Prompt
   if (sections['Prompt']) {
     html += '<h3>Prompt:</h3>\n';
     html += renderSectionContent(sections['Prompt']);
   }
-  // This discussion aligns/Objectives
   if (sections['This discussion aligns'] || sections['Objectives']) {
     html += '<p>This discussion aligns with the following module objectives:</p>\n';
     const objectives = (sections['This discussion aligns'] || []).concat(sections['Objectives'] || []);
     if (objectives.length) {
-      // If the first line is not a list item, treat as description
       let startIdx = 0;
       if (objectives[0] && !/^[-*] /.test(objectives[0].trim())) {
         const desc = markdownToHtml(objectives[0].trim());
         if (desc) html += `<p>${desc}</p>\n`;
         startIdx = 1;
       }
-      // Render the rest as a list if any
       if (objectives.slice(startIdx).length) {
         html += '<ul>\n';
         objectives.slice(startIdx).forEach(l => {
@@ -1193,26 +1187,21 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
       }
     }
   }
-  // Response to Classmates
   if (sections['Response to Classmates']) {
     html += '<h3>Response to Classmates:</h3>\n';
     html += renderSectionContent(sections['Response to Classmates']);
   }
-  // Instructions
   if (sections['Instructions']) {
     html += '<h3>Instructions:</h3>\n';
     html += renderSectionContent(sections['Instructions']);
   }
-  // Criteria for Success (Grading Rubric) or Grading Rubric
   if (sections['Criteria for Success (Grading Rubric)'] || sections['Grading Rubric']) {
     html += '<h3>Criteria for Success (Grading Rubric):</h3>\n';
     const rubric = (sections['Criteria for Success (Grading Rubric)'] || []).concat(sections['Grading Rubric'] || []);
     html += renderSectionContent(rubric);
   }
-  // TIP (final, after <hr />)
   if (sections['TIP']) {
     html += '<hr />\n';
-    // Only one TIP, join all lines
     const tipText = sections['TIP'].map(l => l.replace(/^\*\*?TIP:?\*\*?/, '').replace(/\*\*$/, '').trim()).join(' ');
     if (tipText) {
       html += `<p><strong>TIP:</strong> ${markdownToHtml(tipText.replace(/^:+/, '').trim())}</p>\n`;
@@ -1220,6 +1209,7 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   }
   html += '<div class="grid-row">\n  <div class="col-xs-12">\n    <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>\n  </div>\n</div></div>';
   return html;
+}
 }
 
 /**
@@ -1245,9 +1235,63 @@ export function previewContent(
   // Strip HTML tags for plain text preview
   const plainText = formatted.replace(/<[^>]*>/g, '').trim();
   
-  if (plainText.length <= maxLength) {
-    return plainText;
+  // Fallback: improved Markdown/plain text parser
+  const sectionOrder = [
+    'Prompt',
+    'This discussion aligns',
+    'Objectives',
+    'Response to Classmates',
+    'Instructions',
+    'Criteria for Success (Grading Rubric)',
+    'Grading Rubric',
+    'TIP'
+  ];
+  const headingRegex = /^\s*\*{0,2}\s*([A-Za-z0-9 ()]+)\s*:?[\s\*]*$/;
+  const lines = content.split(/\r?\n/);
+  let currentSection = '';
+  let sections: Record<string, string[]> = {};
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (!line) continue;
+    let headingMatch = line.match(headingRegex);
+    let heading = '';
+    if (headingMatch) {
+      heading = sectionOrder.find(h => headingMatch[1].toLowerCase().startsWith(h.toLowerCase())) || '';
+    } else {
+      heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase())) || '';
+    }
+    if (heading) {
+      currentSection = heading;
+      if (!sections[currentSection]) sections[currentSection] = [];
+      continue;
+    }
+    if (!currentSection) {
+      currentSection = 'Prompt';
+      if (!sections[currentSection]) sections[currentSection] = [];
+    }
+    sections[currentSection].push(line);
   }
-  
-  return plainText.substring(0, maxLength) + '...';
-}
+
+  function renderSectionContent(lines: string[]): string {
+    let html = '';
+    let inList = false;
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i].trim();
+      if (!l) continue;
+      if (headingRegex.test(l)) continue;
+      if (/^[-*] /.test(l)) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
+      } else {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        const htmlLine = markdownToHtml(l).trim();
+        if (htmlLine) html += `<p>${htmlLine}</p>\n`;
+      }
+    }
+    if (inList) html += '</ul>\n';
+    return html;
+  }
+  }
+
+  let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
+  // ...existing code for fallback Markdown/plain text parser...
