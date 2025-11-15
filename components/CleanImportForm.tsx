@@ -4,17 +4,19 @@ import { useState, useMemo, FormEvent, useRef } from "react";
 // Import formatContent and TemplateContext
 import {
   getAvailableTemplates,
-  previewContent,
   formatContent,
   type TemplateType,
   type TemplateContext,
 } from "@/lib/formatters";
+
 export type ImportType = "page" | "assignment" | "discussion" | "syllabus";
+
 interface CanvasModule {
   id: string;
   name: string;
   position: number;
 }
+
 export interface PageSummary {
   url: string;
   title: string;
@@ -22,12 +24,14 @@ export interface PageSummary {
   published?: boolean;
   front_page?: boolean;
 }
+
 export interface DiscussionSummary {
   id: string;
   title: string;
   html_url: string;
   published?: boolean;
 }
+
 export interface AssignmentSummary {
   id: number | string;
   name: string;
@@ -35,6 +39,7 @@ export interface AssignmentSummary {
   due_at?: string;
   published?: boolean;
 }
+
 export interface ImportFormData {
   title: string;
   rawContent: string;
@@ -290,7 +295,7 @@ export default function CleanImportForm({
         line = t.replace(/^<strong>([^<]+)<\/strong>:\s*$/, '$1:');
         processed.push(line); continue;
       }
-      if (/^<strong><strong>[^<]+<\/strong>:/.test(t)) {
+      if (/^<strong><strong>[^<]+<\/strong>/.test(t)) {
         line = t.replace(/^<strong><strong>([^<]+)<\/strong>:(.*)/, '$1:$2');
         processed.push(line); continue;
       }
