@@ -189,7 +189,7 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
   </div>
   <div class="grid-row">
     <div class="col-xs-12">
-      <div class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</div>
+      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
     </div>
   </div>
 </div>`;
