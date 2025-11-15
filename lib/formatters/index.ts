@@ -259,7 +259,9 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
   const lines: string[] = (content || '').split(/\r?\n/);
   const sectionTitles: string[] = [
     'Discussions',
+    'Discussion',
     'Assignments',
+    'Assignment',
     'Project',
     'Course Project',
     'Course Reflection',
@@ -289,13 +291,19 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     if (!line) continue;
-    // Section heading detection (case-insensitive, allow for colon)
-    const heading = sectionTitles.find(t => line.toLowerCase().startsWith(t.toLowerCase())) || null;
+    // Flexible section heading detection (case-insensitive, allow for colon, extra spaces, minor typos)
+    let heading = null;
+    for (const t of sectionTitles) {
+      const regex = new RegExp(`^\s*${t}\s*:?-?\s*`, 'i');
+      if (regex.test(line)) {
+        heading = t;
+        line = line.replace(regex, '');
+        break;
+      }
+    }
     if (heading) {
       flushSection();
       currentSection = heading;
-      // Remove heading from line (e.g., 'Assignments: ...')
-      line = line.replace(new RegExp(`^${heading}:?\\s*`, 'i'), '');
       if (line) buffer.push(line);
       continue;
     }
