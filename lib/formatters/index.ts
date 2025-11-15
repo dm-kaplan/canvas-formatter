@@ -38,18 +38,6 @@ export type TemplateType =
   | 'wfuCourseWelcome'
   | 'wfuCourseSyllabus';
 
-
-
-
-
-
-
-}
-
-function markdownToHtml(content: string): string {
-  marked.setOptions({ gfm: true, breaks: true });
-  return marked(content) as string;
-}
 // ...existing code...
 // Ensure formatWFUCourseSyllabus is declared and exported
 export function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
@@ -143,6 +131,7 @@ export function formatWFUCourseWelcome(content: string, context: TemplateContext
       <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
     </div>
   </div>`;
+}
 // End of file
 /**
  * Returns available Canvas formatter templates for UI selection
@@ -229,7 +218,7 @@ export function getAvailableTemplates() {
 //         let paras: string[] = [], list: string[] = [];
 //         buffer.forEach((l: string) => {
 //           if (/^[-*•]/.test(l.trim())) list.push(l);
-}
+// }
 function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
     // Extract fields from context
     const courseName = context.courseName || context.title || 'Course Name';
@@ -355,6 +344,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
       </div>
     </div>
   </div>`;
+}
 // End of formatWFUAssessmentOverview
 /**
  * Main content formatting dispatcher
@@ -1210,7 +1200,6 @@ function formatWFUDiscussion(content: string, context: TemplateContext = {}): st
   }
   html += '<div class="grid-row">\n  <div class="col-xs-12">\n    <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>\n  </div>\n</div></div>';
   return html;
-}
 }
 
 /**
