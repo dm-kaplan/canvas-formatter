@@ -61,23 +61,56 @@ export function getAvailableTemplates() {
 }
 // --- STUBS FOR MISSING FORMATTER FUNCTIONS ---
 function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
-  // Basic WFU Course Welcome template
-  const courseTitle = context.courseName || context.title || 'Course Title';
-  const courseCode = context.courseCode || '';
-  const description = content ? markdownToHtml(content) : '';
-  const modules = Array.isArray(context.moduleTitles) ? context.moduleTitles : [];
+    const courseTitle = context.courseName || context.title || 'Course Title';
+    const courseCode = context.courseCode || '';
+    const description = content ? markdownToHtml(content) : '';
+    const modules = Array.isArray(context.moduleTitles) ? context.moduleTitles : [];
 
-  let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <h1 style="margin-bottom:0.2em;">${courseCode ? courseCode + ': ' : ''}${courseTitle}</h1>
-    <hr style="margin:1em 0;" />
-    <h2>Welcome!</h2>
-    ${description}
-    <h3 style="margin-top:2em;">Modules</h3>
-    <ol style="padding-left:1.5em;">
-      ${modules.map((m, i) => `<li>Module ${i + 1}: ${m}</li>`).join('\n')}
-    </ol>
+    // Helper to generate module links (replace # with real Canvas URLs if available)
+    function moduleLink(idx: number, title: string) {
+    return `<a title="Module ${idx + 1}" href="#">Module ${idx + 1}: ${title}</a>`;
+    }
+
+    let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+        </div>
+      </div>
+      <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <p class="WFU-SubpageHeader">${courseTitle}</p>
+          <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+          <h3>Introduction to ${courseCode ? courseCode + ' ' : ''}${courseTitle}</h3>
+          ${description}
+          <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
+          <ul>
+            <li>Getting Started&nbsp;</li>
+            <ul>
+              <li>An introduction to the course instructor&nbsp;</li>
+              <li>An overview of assessments</li>
+              <li>Other important information about the course&nbsp;&nbsp;</li>
+            </ul>
+            <li>Tools for Success</li>
+            <ul>
+              <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
+            </ul>
+            <li>Opportunities for Engagement</li>
+            <ul>
+              <li>Ways to engage with your peers, instructors, and the university</li>
+            </ul>
+          </ul>
+          <h3><a title="Getting Started" href="#">Module</a></h3>
+        </div>
+        ${modules.map((m, i) => `<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">${moduleLink(i, m)}</div>`).join('\n')}
+      </div>
+    </div>
+  </div>
+  <div class="grid-row">
+    <div class="col-xs-12 WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</div>
   </div>`;
-  return html;
+    return html;
 }
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
   return '';
