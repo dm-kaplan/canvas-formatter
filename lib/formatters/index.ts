@@ -150,7 +150,50 @@ function formatWFUCourseSyllabus(content: string, context: TemplateContext = {})
   return html;
 }
 function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
-  return '';
+    // Extract fields from context
+    const courseName = context.courseName || context.title || 'Course Name';
+    const facultyName = context.facultyName || 'Dr. Faculty Name';
+    const facultyCredentials = context.facultyCredentials || 'PhD, Credentials';
+    const facultyBio = content || 'Faculty bio goes here.';
+    const facultyImageNumber = context.facultyImageNumber || '5804778';
+    const courseId = context.courseId || '77444';
+
+    // Compose image src and data-api-endpoint
+    const imgSrc = `https://wakeforest.instructure.com/courses/${courseId}/files/${facultyImageNumber}/download`;
+    const imgApi = `https://wakeforest.instructure.com/api/v1/courses/${courseId}/files/${facultyImageNumber}`;
+
+    return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <p class="WFU-SubpageHeader">${courseName}</p>
+        <h2 class="WFU-SubpageSubheader">Meet the Lead Faculty</h2>
+      </div>
+      <div class="col-xs-12 col-sm-8 col-md-8 col-lg-8">
+        <h2>${facultyName}${facultyCredentials ? ', ' + facultyCredentials : ''}</h2>
+        <h3>About</h3>
+        <p>${facultyBio}</p>
+        <h3>Contact Your Instructor</h3>
+        <p>The instructor facilitating your online course may or may not be the lead faculty/course developer. Be assured that this instructor was chosen to meet very high standards and is a professional or acclaimed educator in their field. They will introduce themselves in the course announcements and will be responsible for answering questions, facilitating the synchronous sessions, providing feedback, and grading. To message the instructor/facilitator, use the message feature within Canvas.</p>
+      </div>
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+        <div class="WFU-Faculty">
+          <p><img style="width: 450px; margin-left: auto; margin-right: auto; padding: 0px;" src="${imgSrc}" alt="" data-api-endpoint="${imgApi}" data-api-returntype="File" /></p>
+        </div>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
+    </div>
+  </div>`;
 }
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
   return '';
