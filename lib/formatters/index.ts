@@ -113,7 +113,24 @@ function formatWFUCourseWelcome(content: string, context: TemplateContext = {}):
     return html;
 }
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
-  return '';
+  const courseName = context.courseName || context.title || 'Course Name';
+  const instructorName = context.instructorName || 'Instructor Name';
+  const instructorCredentials = context.instructorCredentials || '';
+  const instructorEmail = context.instructorEmail || '';
+  const syllabusFileName = context.syllabusFileName || 'Syllabus.docx';
+  const office = context.office || 'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
+
+  const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseName}</p>
+            <h2 class="WFU-SubpageSubheader">Syllabus</h2>
+            <p><strong>Instructor:</strong> ${instructorName}${instructorCredentials ? ', ' + instructorCredentials : ''}, Adjunct Professor of Practice<br /><strong>E-mail:</strong> <a href="mailto:${instructorEmail}">${instructorEmail}</a><br /><strong>Office:</strong> ${office}</p>
+            <p><strong>Course Syllabus: </strong>${syllabusFileName}</p>
+        </div>
+    </div>
+</div>`;
+  return html;
 }
 function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
   return '';
