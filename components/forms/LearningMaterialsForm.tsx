@@ -283,10 +283,10 @@ export default function LearningMaterialsForm({
             <h3 className="text-lg font-medium text-gray-900 mb-4">Generated HTML</h3>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                1. Click "Copy HTML".<br/>
-                2. Go to Canvas, create a new page.<br/>
-                3. Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
-                4. Paste this code into the editor.
+                Click "Copy HTML".<br/>
+                Go to a Canvas page (or Discussion, Assignment depending on the form).<br/>
+                Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
+                Paste this code into the editor.
               </p>
               <textarea
                 ref={htmlTextareaRef}

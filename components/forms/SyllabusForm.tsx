@@ -222,11 +222,10 @@ export default function SyllabusForm({
             <h3 className="text-lg font-medium text-gray-900 mb-4">Generated HTML</h3>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                1. Click "Copy HTML".<br/>
-                2. Go to your Canvas course, click "Syllabus" in the navigation.<br/>
-                3. Click "Edit" in the top right.<br/>
-                4. Click the <strong>&lt;/&gt;</strong> (HTML Editor) button in the rich text editor.<br/>
-                5. Paste this code into the editor and save.
+                Click "Copy HTML".<br/>
+                Go to a Canvas page (or Discussion, Assignment depending on the form).<br/>
+                Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
+                Paste this code into the editor.
               </p>
               <textarea
                 ref={htmlTextareaRef}
