@@ -61,7 +61,23 @@ export function getAvailableTemplates() {
 }
 // --- STUBS FOR MISSING FORMATTER FUNCTIONS ---
 function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
-  return '';
+  // Basic WFU Course Welcome template
+  const courseTitle = context.courseName || context.title || 'Course Title';
+  const courseCode = context.courseCode || '';
+  const description = content ? markdownToHtml(content) : '';
+  const modules = Array.isArray(context.moduleTitles) ? context.moduleTitles : [];
+
+  let html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <h1 style="margin-bottom:0.2em;">${courseCode ? courseCode + ': ' : ''}${courseTitle}</h1>
+    <hr style="margin:1em 0;" />
+    <h2>Welcome!</h2>
+    ${description}
+    <h3 style="margin-top:2em;">Modules</h3>
+    <ol style="padding-left:1.5em;">
+      ${modules.map((m, i) => `<li>Module ${i + 1}: ${m}</li>`).join('\n')}
+    </ol>
+  </div>`;
+  return html;
 }
 function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
   return '';
