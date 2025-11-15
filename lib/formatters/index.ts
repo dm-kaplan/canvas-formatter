@@ -1,6 +1,12 @@
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 
+export interface FormattingOptions {
+  sanitize?: boolean;
+  addWrappers?: boolean;
+  includeMetadata?: boolean;
+}
+
 export interface TemplateContext {
   title?: string;
   courseName?: string;
@@ -15,8 +21,22 @@ export interface TemplateContext {
   facultyImageNumber?: string;
   courseId?: string;
   moduleTitles?: string[];
+  dueDate?: string;
+  pointsPossible?: number;
+  objectives?: string[];
   [key: string]: any;
+}
 
+export type TemplateType =
+  | 'wfuModule'
+  | 'wfuLearningMaterials'
+  | 'wfuInstructorPresentation'
+  | 'wfuDiscussion'
+  | 'wfuAssignment'
+  | 'wfuMeetFaculty'
+  | 'wfuAssessmentOverview'
+  | 'wfuCourseWelcome'
+  | 'wfuCourseSyllabus';
 
 
 
@@ -67,6 +87,7 @@ export function formatWFUCourseSyllabus(content: string, context: TemplateContex
       </div>
     </div>
   </div>`;
+}
 export function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
   const courseTitle = context.courseName || context.title || 'Course Title';
   const courseCode = context.courseCode || '';
@@ -398,35 +419,6 @@ export function formatContent(
  * Content formatters for Canvas LMS import
  * Transform raw content using predefined templates
  */
-
-import { marked } from 'marked';
-import DOMPurify from 'isomorphic-dompurify';
-
-export interface FormattingOptions {
-  sanitize?: boolean;
-  addWrappers?: boolean;
-  includeMetadata?: boolean;
-}
-
-export interface TemplateContext {
-  title?: string;
-  courseId?: string;
-  dueDate?: string;
-  pointsPossible?: number;
-  objectives?: string[];
-  [key: string]: any;
-}
-
-export type TemplateType =
-  | 'wfuModule'
-  | 'wfuLearningMaterials'
-  | 'wfuInstructorPresentation'
-  | 'wfuDiscussion'
-  | 'wfuAssignment'
-  | 'wfuMeetFaculty'
-  | 'wfuAssessmentOverview'
-  | 'wfuCourseWelcome'
-  | 'wfuCourseSyllabus';
 
 /**
  * Convert markdown to HTML
@@ -1233,74 +1225,3 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
 /**
  * Preview formatted content (truncated for UI preview)
  */
-export function previewContent(
-  content: string,
-  template: TemplateType,
-  context: TemplateContext = {},
-  maxLength: number = 500
-): string {
-  const formatted = formatContent(content, template, context, { sanitize: true });
-  
-  // Strip HTML tags for plain text preview
-  const plainText = formatted.replace(/<[^>]*>/g, '').trim();
-  
-  // Fallback: improved Markdown/plain text parser
-  const sectionOrder = [
-    'Prompt',
-    'This discussion aligns',
-    'Objectives',
-    'Response to Classmates',
-    'Instructions',
-    'Criteria for Success (Grading Rubric)',
-    'Grading Rubric',
-    'TIP'
-  ];
-  const headingRegex = /^\s*\*{0,2}\s*([A-Za-z0-9 ()]+)\s*:?[\s\*]*$/;
-  const lines = content.split(/\r?\n/);
-  let currentSection = '';
-  let sections: Record<string, string[]> = {};
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
-    if (!line) continue;
-    let headingMatch = line.match(headingRegex);
-    let heading = '';
-    if (headingMatch) {
-      heading = sectionOrder.find(h => headingMatch[1].toLowerCase().startsWith(h.toLowerCase())) || '';
-    } else {
-      heading = sectionOrder.find(h => line.toLowerCase().startsWith(h.toLowerCase())) || '';
-    }
-    if (heading) {
-      currentSection = heading;
-      if (!sections[currentSection]) sections[currentSection] = [];
-      continue;
-    }
-    if (!currentSection) {
-      currentSection = 'Prompt';
-      if (!sections[currentSection]) sections[currentSection] = [];
-    }
-    sections[currentSection].push(line);
-  }
-
-  function renderSectionContent(lines: string[]): string {
-    let html = '';
-    let inList = false;
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].trim();
-      if (!l) continue;
-      if (headingRegex.test(l)) continue;
-      if (/^[-*] /.test(l)) {
-        if (!inList) { html += '<ul>\n'; inList = true; }
-        html += `<li>${markdownToHtml(l.replace(/^[-*] /, ''))}</li>\n`;
-      } else {
-        if (inList) { html += '</ul>\n'; inList = false; }
-        const htmlLine = markdownToHtml(l).trim();
-        if (htmlLine) html += `<p>${htmlLine}</p>\n`;
-      }
-    }
-    if (inList) html += '</ul>\n';
-    return html;
-  }
-  }
-
-  let html = '<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">\n';
-  // ...existing code for fallback Markdown/plain text parser...
