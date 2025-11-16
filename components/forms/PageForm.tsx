@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
-import { previewContent, type TemplateType } from "@/lib/formatters";
+import { type TemplateType } from "@/lib/formatters";
 
 export interface PageFormData {
   title: string;
