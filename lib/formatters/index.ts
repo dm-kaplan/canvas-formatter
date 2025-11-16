@@ -267,61 +267,74 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
   const courseName = context.courseName || context.title || 'Course Name';
   const lines: string[] = (content || '').split(/\r?\n/);
-  const sectionTitles: string[] = [
-    'Discussions',
-    'Discussion',
-    'Assignments',
-    'Assignment',
-    'Project',
-    'Course Project',
-    'Course Reflection',
-    'Reflection'
+  const categoryHeadings = [
+    'Discussions', 'Discussion',
+    'Assignments', 'Assignment',
+    'Quizzes', 'Quiz',
+    'Projects', 'Project', 'Course Project', 'Capstone Project',
+    'Reflections', 'Reflection', 'Course Reflection', 'Course Reflections'
   ];
-  let htmlSections: string[] = [];
-  let currentSection: string | null = null;
-  let buffer: string[] = [];
-  function flushSection() {
-    if (!currentSection && buffer.length) {
-      htmlSections.push(buffer.map((l: string) => `<p>${l}</p>`).join('\n'));
-    } else if (currentSection && buffer.length) {
-      // Separate out list items and paragraphs
-      let paras: string[] = [], list: string[] = [];
-      buffer.forEach((l: string) => {
-        if (/^[-*•]/.test(l.trim())) list.push(l);
-        else paras.push(l);
-      });
-      htmlSections.push(
-        `<h3>${currentSection}</h3>\n` +
-        (paras.length ? paras.map(p => `<p>${p}</p>`).join('\n') : '') +
-        (list.length ? `<ul>\n${list.map((item: string) => `<li>${item.replace(/^[-*•]\s*/, '')}</li>`).join('\n')}\n</ul>\n` : '')
-      );
-    }
-    buffer = [];
+  let sections: Array<{heading: string, description: string[], modules: string[], points: string[], rubric: string[]}> = [];
+  let current: any = null;
+  function isCategoryHeading(line: string) {
+    return categoryHeadings.find(h => new RegExp(`^${h}s?:?\\s*$`, 'i').test(line.trim()));
+  }
+  function isModuleLine(line: string) {
+    return /^Module \d+/i.test(line.trim());
+  }
+  function isPointsLine(line: string) {
+    return /point(s)?/i.test(line) && /\d+/.test(line);
+  }
+  function isRubricLine(line: string) {
+    return /rubric/i.test(line);
   }
   for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
+    const line = lines[i].trim();
     if (!line) continue;
-    // Flexible section heading detection (case-insensitive, allow for colon, extra spaces, minor typos)
-    let heading = null;
-    for (const t of sectionTitles) {
-      const regex = new RegExp(`^\s*${t}\s*:?-?\s*`, 'i');
-      if (regex.test(line)) {
-        heading = t;
-        line = line.replace(regex, '');
-        break;
-      }
-    }
+    const heading = isCategoryHeading(line);
     if (heading) {
-      flushSection();
-      currentSection = heading;
-      if (line) buffer.push(line);
+      if (current) sections.push(current);
+      current = {heading: heading.replace(/:$/, ''), description: [], modules: [], points: [], rubric: []};
       continue;
     }
-    buffer.push(line);
+    if (!current) continue;
+    if (isModuleLine(line)) {
+      current.modules.push(line);
+    } else if (isPointsLine(line)) {
+      current.points.push(line);
+    } else if (isRubricLine(line)) {
+      current.rubric.push(line);
+    } else {
+      current.description.push(line);
+    }
   }
-  flushSection();
+  if (current) sections.push(current);
 
-  const overviewHtml: string = htmlSections.join('\n');
+  let overviewHtml = '';
+  for (const sec of sections) {
+    overviewHtml += `<h3>${sec.heading}</h3>\n`;
+    if (sec.description.length) {
+      overviewHtml += `<p>${sec.description.join(' ')}</p>\n`;
+    }
+    if (sec.modules.length) {
+      overviewHtml += '<ul>\n';
+      for (const m of sec.modules) {
+        const modMatch = m.match(/^(Module \d+)(:)?(.*)$/i);
+        if (modMatch) {
+          overviewHtml += `<li><strong>${modMatch[1]}</strong>${modMatch[3] ? ':' + modMatch[3] : ''}</li>\n`;
+        } else {
+          overviewHtml += `<li>${m}</li>\n`;
+        }
+      }
+      overviewHtml += '</ul>\n';
+    }
+    if (sec.points.length) {
+      overviewHtml += `<p><strong>${sec.points.join(' ')}</strong></p>\n`;
+    }
+    if (sec.rubric.length) {
+      overviewHtml += `<p>${sec.rubric.join(' ')}</p>\n`;
+    }
+  }
 
   return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
@@ -335,6 +348,10 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <p class="WFU-SubpageHeader"><span>${courseName}</span></p>
         <h2 class="WFU-SubpageSubheader">Overview of Assessments</h2>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         ${overviewHtml}
       </div>
     </div>
