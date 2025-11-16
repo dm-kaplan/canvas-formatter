@@ -265,6 +265,8 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
 </div>`;
 }
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
+    // DEBUG: Collect debug info
+    let debugLines: string[] = [];
   const courseName = context.courseName || context.title || 'Course Name';
   // Normalize input: replace non-breaking spaces, remove invisible chars, trim lines
   const lines: string[] = (content || '')
@@ -304,18 +306,26 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     const line = lines[i];
     const heading = isCategoryHeading(line);
     if (heading) {
+      debugLines.push(`[${i}] CATEGORY: "${line}" => "${heading}"`);
       if (current) sections.push(current);
       current = {heading: heading.replace(/:$/, ''), description: [], modules: [], points: [], rubric: []};
       continue;
     }
-    if (!current) continue;
+    if (!current) {
+      debugLines.push(`[${i}] SKIP (no current category): "${line}"`);
+      continue;
+    }
     if (isModuleLine(line)) {
+      debugLines.push(`[${i}] MODULE: "${line}"`);
       current.modules.push(line);
     } else if (isPointsLine(line)) {
+      debugLines.push(`[${i}] POINTS: "${line}"`);
       current.points.push(line);
     } else if (isRubricLine(line)) {
+      debugLines.push(`[${i}] RUBRIC: "${line}"`);
       current.rubric.push(line);
     } else {
+      debugLines.push(`[${i}] DESC: "${line}"`);
       current.description.push(line);
     }
   }
@@ -347,6 +357,9 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     }
   }
 
+  // DEBUG: Output debug info at the top of the HTML for troubleshooting (remove in production)
+  const debugHtml = `<pre style="background:#eee;color:#333;font-size:12px;padding:8px;overflow:auto;max-height:300px;">\n${debugLines.join('\n')}\n</pre>`;
+
   return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
     <div class=\"grid-row\">
       <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
@@ -359,6 +372,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
       <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
         <p class=\"WFU-SubpageHeader\"><span>${courseName}</span></p>
         <h2 class=\"WFU-SubpageSubheader\">Overview of Assessments</h2>
+        ${debugHtml}
       </div>
     </div>
     <div class=\"grid-row\">
