@@ -266,7 +266,14 @@ function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): s
 }
 function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
   const courseName = context.courseName || context.title || 'Course Name';
-  const lines: string[] = (content || '').split(/\r?\n/);
+  // Normalize input: replace non-breaking spaces, remove invisible chars, trim lines
+  const lines: string[] = (content || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .split(/\r?\n/)
+    .map(l => l.replace(/\s+/g, ' ').trim())
+    .filter(l => l && l.replace(/\s/g, '') !== '');
+
   const categoryHeadings = [
     'Discussions', 'Discussion',
     'Assignments', 'Assignment',
@@ -277,10 +284,15 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
   let sections: Array<{heading: string, description: string[], modules: string[], points: string[], rubric: string[]}> = [];
   let current: any = null;
   function isCategoryHeading(line: string) {
-    return categoryHeadings.find(h => new RegExp(`^${h}s?:?\\s*$`, 'i').test(line.trim()));
+    // Flexible: allow extra spaces, colons, dashes, plural/singular, ignore case
+    return categoryHeadings.find(h => {
+      const re = new RegExp(`^\s*${h.replace(/s$/, '')}s?\s*[:\-–—]?\s*$`, 'i');
+      return re.test(line);
+    });
   }
   function isModuleLine(line: string) {
-    return /^Module \d+/i.test(line.trim());
+    // Flexible: allow "Module X", "Module X:", "Module X -", etc.
+    return /^Module\s*\d+\s*[:\-–—]?/i.test(line);
   }
   function isPointsLine(line: string) {
     return /point(s)?/i.test(line) && /\d+/.test(line);
@@ -289,8 +301,7 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     return /rubric/i.test(line);
   }
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
+    const line = lines[i];
     const heading = isCategoryHeading(line);
     if (heading) {
       if (current) sections.push(current);
@@ -319,9 +330,9 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     if (sec.modules.length) {
       overviewHtml += '<ul>\n';
       for (const m of sec.modules) {
-        const modMatch = m.match(/^(Module \d+)(:)?(.*)$/i);
+        const modMatch = m.match(/^(Module\s*\d+)([:\-–—])?(.*)$/i);
         if (modMatch) {
-          overviewHtml += `<li><strong>${modMatch[1]}</strong>${modMatch[3] ? ':' + modMatch[3] : ''}</li>\n`;
+          overviewHtml += `<li><strong>${modMatch[1].replace(/\s+/g, ' ').trim()}</strong>${modMatch[3] ? ':' + modMatch[3].trim() : ''}</li>\n`;
         } else {
           overviewHtml += `<li>${m}</li>\n`;
         }
@@ -336,28 +347,28 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
     }
   }
 
-  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+  return `<div class=\"WFU-SPS WFU-Container-Global WFU-LightMode-Text\">
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\" style=\"padding: 0px 0px 10px 0px;\">
+        <div class=\"WFU-SubpageHeader WFU-SubpageHeroGettingStarted\">&nbsp;
+          <div class=\"WFU-Banner-SchoolofProfessionalStudies\">&nbsp;</div>
         </div>
       </div>
     </div>
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <p class="WFU-SubpageHeader"><span>${courseName}</span></p>
-        <h2 class="WFU-SubpageSubheader">Overview of Assessments</h2>
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
+        <p class=\"WFU-SubpageHeader\"><span>${courseName}</span></p>
+        <h2 class=\"WFU-SubpageSubheader\">Overview of Assessments</h2>
       </div>
     </div>
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">
         ${overviewHtml}
       </div>
     </div>
-    <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    <div class=\"grid-row\">
+      <div class=\"col-xs-12\">
+        <footer class=\"WFU-footer\">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
       </div>
     </div>
   </div>`;
