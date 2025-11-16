@@ -286,10 +286,11 @@ function formatWFUAssessmentOverview(content: string, context: TemplateContext =
   let sections: Array<{heading: string, description: string[], modules: string[], points: string[], rubric: string[]}> = [];
   let current: any = null;
   function isCategoryHeading(line: string) {
-    // Flexible: allow extra spaces, colons, dashes, plural/singular, ignore case
+    // Remove markdown bold/underline (**text**, __text__)
+    const clean = line.replace(/^(\*\*|__)+/, '').replace(/(\*\*|__)+$/, '').trim();
     return categoryHeadings.find(h => {
       const re = new RegExp(`^\s*${h.replace(/s$/, '')}s?\s*[:\-–—]?\s*$`, 'i');
-      return re.test(line);
+      return re.test(clean);
     });
   }
   function isModuleLine(line: string) {
