@@ -576,12 +576,21 @@ export function formatWFUDiscussion(
   let instText = instructionsBlock.replace(/^\s*Instructions:\s*/i, "").trim();
   const instructionsHtml = instText ? markdownToHtml(instText) : "";
 
-  // CRITERIA:
-  let criteriaText = criteriaBlock.replace(/^\s*Criteria for Success.*?:\s*/i, "").trim();
+    // CRITERIA:
+  let criteriaText = criteriaBlock
+    .replace(/^\s*Criteria for Success.*?:\s*/i, "")          // remove heading line
+    .replace(/^\s*\(?Grading Rubric\)?:?\s*/i, "")            // remove stray "(Grading Rubric):" line
+    .replace(/^\s*\*{1,2}\s*/, "")                            // strip leading ** if present
+    .replace(/\s*\*{1,2}\s*$/, "")                            // strip trailing ** if present
+    .trim();
   const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
 
-  // TIP: keep the TIP label bolded
-  let tipText = tipBlock.replace(/^\s*\*{0,2}\s*TIP:\s*/i, "").trim();
+    // TIP: keep the TIP label bolded
+  let tipText = tipBlock
+    .replace(/^\s*\*{0,2}\s*TIP:\s*/i, "")                    // remove "TIP:" prefix (with optional **)
+    .replace(/^\s*\*{1,2}\s*/, "")                            // strip leading ** if present
+    .replace(/\s*\*{1,2}\s*$/, "")                            // strip trailing ** if present
+    .trim();
   let tipHtml = "";
   if (tipText) {
     tipHtml = markdownToHtml(`**TIP:** ${tipText}`);
