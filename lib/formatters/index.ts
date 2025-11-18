@@ -89,8 +89,11 @@ function renderParagraphsFromText(text: string): string {
  */
 
 function boldDueDates(html: string): string {
+  // Matches:
+  //   Sunday, 11:59 p.m. ET
+  //   Wednesday at 11:59 p.m. ET
   const re =
-    /\b(Sunday|Saturday|Wednesday|Tuesday),\s*11:59\s*p\.m\.\s*ET\b/gi;
+    /\b(Sunday|Saturday|Wednesday|Tuesday)\s*(?:,)?\s*(?:at\s*)?11:59\s*p\.m\.\s*ET\b/gi;
   return html.replace(re, (match) => `<strong>${match}</strong>`);
 }
 
@@ -500,28 +503,103 @@ export function formatWFULearningMaterials(
 
 /**
  * WFU SPS Discussion page format
+ *
+ * Takes a combined discussion text that includes:
+ *  - Prompt:
+ *  - This discussion aligns with the following module objective:
+ *  - Response to Classmates:
+ *  - Instructions:
+ *  - Criteria for Success (Grading Rubric):
+ *  - TIP:
+ *
+ * and restructures it into the exact HTML shape you specified.
  */
 export function formatWFUDiscussion(
   content: string,
   context: TemplateContext = {}
 ): string {
-  const htmlContent = markdownToHtml(content);
-  const title = context.title || "Discussion";
+  const text = (content || "").replace(/\r\n/g, "\n");
+
+  const sectionOr = (re: RegExp, from = 0) => {
+    const m = re.exec(text.slice(from));
+    if (!m) return -1;
+    return from + m.index;
+  };
+
+  const getBlock = (startRe: RegExp, endRe?: RegExp) => {
+    const startIdx = sectionOr(startRe);
+    if (startIdx === -1) return "";
+    const afterStart = startIdx + text.slice(startIdx).match(startRe)![0].length;
+    if (!endRe) {
+      return text.slice(afterStart).trim();
+    }
+    const endIdx = sectionOr(endRe, afterStart);
+    const end = endIdx === -1 ? text.length : endIdx;
+    return text.slice(afterStart, end).trim();
+  };
+
+  // Extract blocks based on markers in your template text
+  const promptBlock = getBlock(/Prompt:/i, /This discussion aligns with the following module objective:/i);
+  const objectiveBlock = getBlock(
+    /This discussion aligns with the following module objective:/i,
+    /Response to Classmates:/i
+  );
+  const responseBlock = getBlock(/Response to Classmates:/i, /Instructions:/i);
+  const instructionsBlock = getBlock(/Instructions:/i, /Criteria for Success/i);
+  const criteriaBlock = getBlock(/Criteria for Success/i, /TIP:/i);
+  const tipBlock = getBlock(/TIP:/i);
+
+  // PROMPT: clean out any lingering "Prompt:" labels and structure paragraphs
+  let promptText = promptBlock.replace(/^\s*\*{0,2}\s*Prompt:\s*/i, "").trim();
+  // Try to tease out "Why or why not?" as its own paragraph if present
+  const idxWhy = promptText.indexOf("Why or why not?");
+  let promptHtml = "";
+  if (idxWhy >= 0) {
+    const beforeWhy = promptText.slice(0, idxWhy).trim();
+    const afterWhy = promptText.slice(idxWhy + "Why or why not?".length).trim();
+    const whyText = "Why or why not?";
+    if (beforeWhy) promptHtml += markdownToHtml(beforeWhy);
+    promptHtml += markdownToHtml(whyText);
+    if (afterWhy) promptHtml += markdownToHtml(afterWhy);
+  } else {
+    promptHtml = markdownToHtml(promptText);
+  }
+
+  // OBJECTIVE(S): usually "- Evaluate the origins..." etc.
+  const objectiveHtml = objectiveBlock ? markdownToHtml(objectiveBlock) : "";
+
+  // RESPONSE TO CLASSMATES:
+  let responseText = responseBlock.replace(/^\s*Response to Classmates:\s*/i, "").trim();
+  const responseHtml = responseText ? markdownToHtml(responseText) : "";
+
+  // INSTRUCTIONS:
+  let instText = instructionsBlock.replace(/^\s*Instructions:\s*/i, "").trim();
+  const instructionsHtml = instText ? markdownToHtml(instText) : "";
+
+  // CRITERIA:
+  let criteriaText = criteriaBlock.replace(/^\s*Criteria for Success.*?:\s*/i, "").trim();
+  const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
+
+  // TIP: keep the TIP label bolded
+  let tipText = tipBlock.replace(/^\s*\*{0,2}\s*TIP:\s*/i, "").trim();
+  let tipHtml = "";
+  if (tipText) {
+    tipHtml = markdownToHtml(`**TIP:** ${tipText}`);
+  }
 
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
-        <h1 class="WFU-SubpageHeader">${title}</h1>
-        ${htmlContent}
-      </div>
-    </div>
-  </div>
-  <div class="grid-row">
-    <div class="col-xs-12">
-      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-    </div>
-  </div>
+    <h3>Prompt:</h3>
+    ${promptHtml}
+    <p>This discussion aligns with the following module objective:</p>
+    ${objectiveHtml}
+    <h3>Response to Classmates:</h3>
+    ${responseHtml}
+    <h3>Instructions:</h3>
+    ${instructionsHtml}
+    <h3>Criteria for Success (Grading Rubric):</h3>
+    ${criteriaHtml}
+    <hr />
+    ${tipHtml}
 </div>`;
 
   return postProcessHtml(html, context);
