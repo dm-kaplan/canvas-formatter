@@ -1172,3 +1172,4 @@ module.exports = {
   formatWFUDiscussion,
   formatWFUAssignment
 };
+}
