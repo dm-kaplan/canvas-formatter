@@ -8,7 +8,7 @@ export interface ModuleFormData {
   template: TemplateType;
   moduleNumber?: string;
   courseName?: string;
-  courseCode?: string;
+  // courseCode?: string; // Removed
   combinedModuleText?: string;
   objectives?: string[];
   checklist?: string[];
@@ -79,7 +79,8 @@ export default function ModuleForm({
     template: "wfuModule",
     moduleNumber: "1",
     courseName: "",
-    courseCode: "",
+    courseId: "",
+    // courseCode: "", // Removed
     combinedModuleText: "",
   });
   // ...existing code...
@@ -173,16 +174,17 @@ export default function ModuleForm({
             />
           </div>
           <div>
-            <label htmlFor="courseCode" className="block text-sm font-medium text-gray-700 mb-1">
-              Course Code
+            <label htmlFor="courseId" className="block text-sm font-medium text-gray-700 mb-1">
+              Course ID *
             </label>
             <input
-              id="courseCode"
+              id="courseId"
               type="text"
-              value={formData.courseCode || ""}
-              onChange={e => handleChange("courseCode", e.target.value)}
+              value={formData.courseId || ""}
+              onChange={e => handleChange("courseId", e.target.value)}
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-              placeholder="CYB 710"
+              placeholder="e.g. 77056"
             />
           </div>
         </div>
