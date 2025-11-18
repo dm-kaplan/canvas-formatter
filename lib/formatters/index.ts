@@ -5,7 +5,6 @@ export interface FormattingOptions {
   sanitize?: boolean;
   addWrappers?: boolean;
   includeMetadata?: boolean;
-}
 
 export interface TemplateContext {
   title?: string;
@@ -1165,11 +1164,10 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
   return '';
 }
 
-module.exports = {
+export {
   formatWFUModule,
   formatWFULearningMaterials,
   formatWFUInstructorPresentation,
   formatWFUDiscussion,
   formatWFUAssignment
 };
-}
