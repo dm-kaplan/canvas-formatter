@@ -346,8 +346,10 @@ export function formatWFUCourseWelcome(
 /**
  * WFU SPS Module page format
  *
- * - Correct footer nesting: no closing </div> before the footer grid-row.
- * - Final structure matches your example exactly.
+ * - Correct footer nesting (no closing </div> before footer block)
+ * - Paragraph-aware description
+ * - Objectives & checklist
+ * - Discussion due dates nested under the Discussion item
  */
 export function formatWFUModule(
   content: string,
@@ -404,11 +406,38 @@ export function formatWFUModule(
             </ol>`
       : "";
 
+  // Build checklist with special nesting for Discussion due dates
+  let checklistItemsHtml: string[] = [];
+  for (let i = 0; i < checklist.length; i++) {
+    const item = checklist[i];
+
+    const isDiscussion =
+      /Discussion/i.test(item) ||
+      /Participate in the Discussion/i.test(item);
+
+    const next = checklist[i + 1] || "";
+    const next2 = checklist[i + 2] || "";
+
+    const isInitialPost =
+      /^Initial post due by\b/i.test(next.trim());
+    const isTwoReplies =
+      /^Two reply posts due by\b/i.test(next2.trim());
+
+    if (isDiscussion && isInitialPost && isTwoReplies) {
+      checklistItemsHtml.push(
+        `<li>${item}<ul><li>${next}</li><li>${next2}</li></ul></li>`
+      );
+      i += 2; // Skip the next two since we've consumed them
+    } else {
+      checklistItemsHtml.push(`<li>${item}</li>`);
+    }
+  }
+
   const checklistSection =
-    checklist.length > 0
+    checklistItemsHtml.length > 0
       ? `<h3>Module Checklist</h3>
             <ul>
-                ${checklist.map((item) => `<li>${item}</li>`).join("")}
+                ${checklistItemsHtml.join("")}
             </ul>`
       : "";
 
