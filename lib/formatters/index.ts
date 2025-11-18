@@ -38,7 +38,9 @@ export type TemplateType =
   | 'wfuCourseWelcome'
   | 'wfuCourseSyllabus';
 
-// Ensure formatWFUCourseSyllabus is declared and exported
+/**
+ * WFU SPS Syllabus summary / header block
+ */
 export function formatWFUCourseSyllabus(
   content: string,
   context: TemplateContext = {}
@@ -353,5 +355,59 @@ export function formatWFUAssignment(
   context: TemplateContext = {}
 ): string {
   // TODO: Implement assignment formatting logic
-  return '';
+  const html = markdownToHtml(content);
+  const title = context.title || 'Assignment';
+
+  return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+    <div class="grid-row">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
+          <h1 class="WFU-SubpageHeader">${title}</h1>
+          ${html}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/**
+ * Generic formatter entry point used by forms / API
+ */
+export function formatContent(
+  rawContent: string,
+  template?: TemplateType | null,
+  context: TemplateContext = {},
+  options: FormattingOptions = {}
+): string {
+  // No template selected → just render markdown, optionally wrapped
+  if (!template) {
+    const baseHtml = markdownToHtml(rawContent, options);
+    return options.addWrappers ? wrapInWFUContainer(baseHtml) : baseHtml;
+  }
+
+  switch (template) {
+    case 'wfuModule':
+      return formatWFUModule(rawContent, context);
+    case 'wfuLearningMaterials':
+      return formatWFULearningMaterials(rawContent, context);
+    case 'wfuInstructorPresentation':
+      return formatWFUInstructorPresentation(rawContent, context);
+    case 'wfuDiscussion':
+      return formatWFUDiscussion(rawContent, context);
+    case 'wfuAssignment':
+      return formatWFUAssignment(rawContent, context);
+    case 'wfuMeetFaculty':
+      return formatWFUMeetFaculty(rawContent, context);
+    case 'wfuAssessmentOverview':
+      return formatWFUAssessmentOverview(rawContent, context);
+    case 'wfuCourseWelcome':
+      return formatWFUCourseWelcome(rawContent, context);
+    case 'wfuCourseSyllabus':
+      return formatWFUCourseSyllabus(rawContent, context);
+    default: {
+      // Fallback: unknown template, behave like “no template”
+      const baseHtml = markdownToHtml(rawContent, options);
+      return options.addWrappers ? wrapInWFUContainer(baseHtml) : baseHtml;
+    }
+  }
 }
