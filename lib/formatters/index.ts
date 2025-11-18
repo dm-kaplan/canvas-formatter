@@ -518,89 +518,137 @@ export function formatWFUDiscussion(
   content: string,
   context: TemplateContext = {}
 ): string {
-  const text = (content || "").replace(/\r\n/g, "\n");
+  // Normalize line endings and trim
+  let text = (content || "").replace(/\r\n/g, "\n").trim();
 
-  const sectionOr = (re: RegExp, from = 0) => {
-    const m = re.exec(text.slice(from));
-    if (!m) return -1;
-    return from + m.index;
+  // Remove stray markdown bold markers that may still be in the plain text
+  // (we'll add our own bold TIP label later)
+  text = text.replace(/\*{2,}/g, "");
+
+  // Helper to find a label and return [labelStart, labelEnd] indexes
+  const findLabel = (re: RegExp, from = 0): [number, number] | null => {
+    const slice = text.slice(from);
+    const m = slice.match(re);
+    if (!m || m.index === undefined) return null;
+    const start = from + m.index;
+    const end = start + m[0].length;
+    return [start, end];
   };
 
-  const getBlock = (startRe: RegExp, endRe?: RegExp) => {
-    const startIdx = sectionOr(startRe);
-    if (startIdx === -1) return "";
-    const afterStart = startIdx + text.slice(startIdx).match(startRe)![0].length;
-    if (!endRe) {
-      return text.slice(afterStart).trim();
-    }
-    const endIdx = sectionOr(endRe, afterStart);
-    const end = endIdx === -1 ? text.length : endIdx;
-    return text.slice(afterStart, end).trim();
+  // Label regexes (case-insensitive, flexible)
+  const reAlign = /This discussion aligns with the following module objective[s]?:/i;
+  const reResponse = /Response to Classmates\s*:/i;
+  const reInstructions = /Instructions\s*:/i;
+  const reCriteria = /Criteria for Success[^:]*:/i;
+  const reTip = /TIP\s*:/i;
+
+  const len = text.length;
+
+  // Find label positions (in order of appearance in the text)
+  const alignPos = findLabel(reAlign) ?? null;
+  const responsePos = findLabel(reResponse) ?? null;
+  const instructionsPos = findLabel(reInstructions) ?? null;
+  const criteriaPos = findLabel(reCriteria) ?? null;
+  const tipPos = findLabel(reTip) ?? null;
+
+  // Helper to choose the earliest non-null index from a list
+  const earliest = (...indices: Array<number | null>): number => {
+    const valid = indices.filter(
+      (i): i is number => i !== null && i >= 0
+    );
+    return valid.length ? Math.min(...valid) : len;
   };
 
-  // Extract blocks based on markers in your template text
-  const promptBlock = getBlock(/Prompt:/i, /This discussion aligns with the following module objective:/i);
-  const objectiveBlock = getBlock(
-    /This discussion aligns with the following module objective:/i,
-    /Response to Classmates:/i
+  // PROMPT: from start up to the first label (align/response/instructions/criteria/tip)
+  const firstLabelStart = earliest(
+    alignPos ? alignPos[0] : null,
+    responsePos ? responsePos[0] : null,
+    instructionsPos ? instructionsPos[0] : null,
+    criteriaPos ? criteriaPos[0] : null,
+    tipPos ? tipPos[0] : null
   );
-  const responseBlock = getBlock(/Response to Classmates:/i, /Instructions:/i);
-  const instructionsBlock = getBlock(/Instructions:/i, /Criteria for Success/i);
-  const criteriaBlock = getBlock(/Criteria for Success/i, /TIP:/i);
-  const tipBlock = getBlock(/TIP:/i);
+  const promptText = text.slice(0, firstLabelStart).trim();
 
-  // PROMPT: clean out any lingering "Prompt:" labels and structure paragraphs
-  let promptText = promptBlock.replace(/^\s*\*{0,2}\s*Prompt:\s*/i, "").trim();
-  // Try to tease out "Why or why not?" as its own paragraph if present
-  const idxWhy = promptText.indexOf("Why or why not?");
-  let promptHtml = "";
-  if (idxWhy >= 0) {
-    const beforeWhy = promptText.slice(0, idxWhy).trim();
-    const afterWhy = promptText.slice(idxWhy + "Why or why not?".length).trim();
-    const whyText = "Why or why not?";
-    if (beforeWhy) promptHtml += markdownToHtml(beforeWhy);
-    promptHtml += markdownToHtml(whyText);
-    if (afterWhy) promptHtml += markdownToHtml(afterWhy);
-  } else {
-    promptHtml = markdownToHtml(promptText);
+  // OBJECTIVES: between "This discussion aligns..." and the next label
+  let objectivesText = "";
+  if (alignPos) {
+    const start = alignPos[1]; // after the label
+    const end = earliest(
+      responsePos ? responsePos[0] : null,
+      instructionsPos ? instructionsPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null,
+      tipPos ? tipPos[0] : null
+    );
+    objectivesText = text.slice(start, end).trim();
   }
 
-  // OBJECTIVE(S): usually "- Evaluate the origins..." etc.
-  const objectiveHtml = objectiveBlock ? markdownToHtml(objectiveBlock) : "";
+  // RESPONSE TO CLASSMATES
+  let responseText = "";
+  if (responsePos) {
+    const start = responsePos[1];
+    const end = earliest(
+      instructionsPos ? instructionsPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null,
+      tipPos ? tipPos[0] : null
+    );
+    responseText = text.slice(start, end).trim();
+  }
 
-  // RESPONSE TO CLASSMATES:
-  let responseText = responseBlock.replace(/^\s*Response to Classmates:\s*/i, "").trim();
+  // INSTRUCTIONS
+  let instructionsText = "";
+  if (instructionsPos) {
+    const start = instructionsPos[1];
+    const end = earliest(
+      criteriaPos ? criteriaPos[0] : null,
+      tipPos ? tipPos[0] : null
+    );
+    instructionsText = text.slice(start, end).trim();
+  }
+
+  // CRITERIA
+  let criteriaText = "";
+  if (criteriaPos) {
+    const start = criteriaPos[1];
+    const end = earliest(tipPos ? tipPos[0] : null);
+    criteriaText = text.slice(start, end).trim();
+    // Strip a stray "(Grading Rubric)" line if it got pulled in
+    criteriaText = criteriaText.replace(/^\(?Grading Rubric\)?:?\s*/i, "").trim();
+  }
+
+  // TIP
+  let tipText = "";
+  if (tipPos) {
+    const start = tipPos[1];
+    const end = len;
+    tipText = text.slice(start, end).trim();
+  }
+
+  // Convert each block via markdown → HTML
+  const promptHtml = promptText ? markdownToHtml(promptText) : "";
+  const objectiveHtml = objectivesText ? markdownToHtml(objectivesText) : "";
   const responseHtml = responseText ? markdownToHtml(responseText) : "";
-
-  // INSTRUCTIONS:
-  let instText = instructionsBlock.replace(/^\s*Instructions:\s*/i, "").trim();
-  const instructionsHtml = instText ? markdownToHtml(instText) : "";
-
-    // CRITERIA:
-  let criteriaText = criteriaBlock
-    .replace(/^\s*Criteria for Success.*?:\s*/i, "")          // remove heading line
-    .replace(/^\s*\(?Grading Rubric\)?:?\s*/i, "")            // remove stray "(Grading Rubric):" line
-    .replace(/^\s*\*{1,2}\s*/, "")                            // strip leading ** if present
-    .replace(/\s*\*{1,2}\s*$/, "")                            // strip trailing ** if present
-    .trim();
+  const instructionsHtml = instructionsText
+    ? markdownToHtml(instructionsText)
+    : "";
   const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
+  const tipHtml = tipText
+    ? markdownToHtml(`**TIP:** ${tipText}`)
+    : "";
 
-    // TIP: keep the TIP label bolded
-  let tipText = tipBlock
-    .replace(/^\s*\*{0,2}\s*TIP:\s*/i, "")                    // remove "TIP:" prefix (with optional **)
-    .replace(/^\s*\*{1,2}\s*/, "")                            // strip leading ** if present
-    .replace(/\s*\*{1,2}\s*$/, "")                            // strip trailing ** if present
-    .trim();
-  let tipHtml = "";
-  if (tipText) {
-    tipHtml = markdownToHtml(`**TIP:** ${tipText}`);
-  }
+  // Decide whether to use "objective" or "objectives" in the line
+  const alignPlural = /objective[s]/i.test(text);
 
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <h3>Prompt:</h3>
     ${promptHtml}
-    <p>This discussion aligns with the following module objective:</p>
-    ${objectiveHtml}
+    ${
+      objectiveHtml
+        ? `<p>This discussion aligns with the following module objective${
+            alignPlural ? "s" : ""
+          }:</p>
+    ${objectiveHtml}`
+        : ""
+    }
     <h3>Response to Classmates:</h3>
     ${responseHtml}
     <h3>Instructions:</h3>
