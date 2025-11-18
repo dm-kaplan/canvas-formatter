@@ -8,7 +8,7 @@ export interface ModuleFormData {
   template: TemplateType;
   moduleNumber?: string;
   courseName?: string;
-  // courseCode?: string; // Removed
+  courseId?: string;
   combinedModuleText?: string;
   objectives?: string[];
   checklist?: string[];
