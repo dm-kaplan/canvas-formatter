@@ -33,12 +33,12 @@ interface ModuleFormProps {
 function parseCombinedModuleInput(text: string) {
   const lines = text.split(/\r?\n/);
   const idx = (re: RegExp) => lines.findIndex((l) => re.test(l));
-  const iDesc = idx(/^\s*Module\s+Description\s*:/i);
+  const iDesc = idx(/^\s*Module\s+Description\b/i);
   const iObj =
     idx(/^\s*Module\s+Learning\s+Objectives/i) ||
     idx(/\bMLOs\b/i) ||
     idx(/^\s*After\s+completing\s+this\s+module/i);
-  const iChecklist = idx(/^\s*Module\s+Checklist\s*:/i);
+  const iChecklist = idx(/^\s*Module\s+Checklist\b/i);
   const next = [iObj, iChecklist].filter((i) => i >= 0).sort((a, b) => a - b);
   const descStart = iDesc >= 0 ? iDesc + 1 : 0;
   const descEnd = next.length ? next[0] : lines.length;
