@@ -163,6 +163,8 @@ export function formatWFUCourseSyllabus(
           <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
         </div>
       </div>
+    </div>
+    <div class="grid-row">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="WFU-Container-DarkText" style="padding: 0px 15px 0px 15px;">
           <h1 class="WFU-SubpageHeader">${courseName} (${context.courseCode || ""})</h1>
@@ -173,12 +175,13 @@ export function formatWFUCourseSyllabus(
           <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
         </div>
       </div>
-      <div class="grid-row">
-        <div class="col-xs-12">
-          <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-        </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
       </div>
-    </div>`;
+    </div>
+  </div>`;
 
   return postProcessHtml(html, context);
 }
@@ -267,6 +270,11 @@ export function formatWFUMeetFaculty(
       </div>
     </div>
   </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    </div>
+  </div>
 </div>`;
 
   return postProcessHtml(html, context);
@@ -290,6 +298,11 @@ export function formatWFUAssessmentOverview(
         <h2 class="WFU-SubpageSubheader">Assessment Overview</h2>
         ${htmlContent}
       </div>
+    </div>
+  </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
     </div>
   </div>
 </div>`;
@@ -320,6 +333,11 @@ export function formatWFUCourseWelcome(
       </div>
     </div>
   </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    </div>
+  </div>
 </div>`;
 
   return postProcessHtml(html, context);
@@ -327,6 +345,9 @@ export function formatWFUCourseWelcome(
 
 /**
  * WFU SPS Module page format
+ *
+ * - Correct footer nesting: no closing </div> before the footer grid-row.
+ * - Final structure matches your example exactly.
  */
 export function formatWFUModule(
   content: string,
@@ -406,10 +427,10 @@ export function formatWFUModule(
             ${descriptionHtml}
             ${objectivesSection}
             ${checklistSection}
-        </div>
-        <div class="grid-row">
-            <div class="col-xs-12">
-                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            <div class="grid-row">
+                <div class="col-xs-12">
+                    <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+                </div>
             </div>
         </div>
     </div>
@@ -438,6 +459,11 @@ export function formatWFULearningMaterials(
       </div>
     </div>
   </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    </div>
+  </div>
 </div>`;
 
   return postProcessHtml(html, context);
@@ -460,6 +486,11 @@ export function formatWFUDiscussion(
         <h1 class="WFU-SubpageHeader">${title}</h1>
         ${htmlContent}
       </div>
+    </div>
+  </div>
+  <div class="grid-row">
+    <div class="col-xs-12">
+      <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
     </div>
   </div>
 </div>`;
@@ -492,6 +523,11 @@ export function formatWFUInstructorPresentation(
             </div>
         </div>
     </div>
+    <div class="grid-row">
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+      </div>
+    </div>
   </div>`;
 
   return postProcessHtml(html, context);
@@ -514,6 +550,11 @@ export function formatWFUAssignment(
           <h1 class="WFU-SubpageHeader">${title}</h1>
           ${htmlContent}
         </div>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-xs-12">
+        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
       </div>
     </div>
   </div>`;
