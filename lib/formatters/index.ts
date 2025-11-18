@@ -1165,7 +1165,7 @@ function formatWFUAssignment(content: string, context: TemplateContext = {}): st
   return '';
 }
 
-export {
+module.exports = {
   formatWFUModule,
   formatWFULearningMaterials,
   formatWFUInstructorPresentation,
