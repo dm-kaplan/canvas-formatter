@@ -150,7 +150,8 @@ export function markdownToHtml(
   options: FormattingOptions = {}
 ): string {
   const { sanitize = true } = options;
-  const rawHtml = marked(content || '');
+  // `marked` is typed as returning string | Promise<string>, but we use it synchronously.
+  const rawHtml = marked(content || '') as string;
   if (!sanitize) return rawHtml;
   return DOMPurify.sanitize(rawHtml);
 }
