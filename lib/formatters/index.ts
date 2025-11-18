@@ -38,21 +38,29 @@ export type TemplateType =
   | 'wfuCourseWelcome'
   | 'wfuCourseSyllabus';
 
-// ...existing code...
 // Ensure formatWFUCourseSyllabus is declared and exported
-export function formatWFUCourseSyllabus(content: string, context: TemplateContext = {}): string {
+export function formatWFUCourseSyllabus(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const courseName = context.courseName || context.title || 'Course Name';
   const instructorName = context.instructorName || 'Instructor Name';
-  const instructorCredentials = context.instructorCredentials || 'Adjunct Professor of Practice';
+  const instructorCredentials =
+    context.instructorCredentials || 'Adjunct Professor of Practice';
   const instructorEmail = context.instructorEmail || '';
   const syllabusFileName = context.syllabusFileName || 'Syllabus.docx';
-  const office = context.office || 'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
+  const office =
+    context.office ||
+    'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
 
   // Remove any accidental duplicate 'Adjunct Professor of Practice' in credentials
   let credentials = instructorCredentials.trim();
   if (credentials.toLowerCase().includes('adjunct professor of practice')) {
-    credentials = credentials.replace(/,?\s*adjunct professor of practice\s*/i, '').trim();
+    credentials = credentials
+      .replace(/,?\s*adjunct professor of practice\s*/i, '')
+      .trim();
   }
+
   return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
@@ -78,7 +86,6 @@ export function formatWFUCourseSyllabus(content: string, context: TemplateContex
     </div>`;
 }
 
-// End of file
 /**
  * Returns available Canvas formatter templates for UI selection
  */
@@ -87,7 +94,8 @@ export function getAvailableTemplates() {
     {
       id: 'wfuModule',
       label: 'WFU SPS Module Page',
-      description: 'Standard module landing page with overview, outcomes, and structure.',
+      description:
+        'Standard module landing page with overview, outcomes, and structure.',
     },
     {
       id: 'wfuLearningMaterials',
@@ -128,14 +136,17 @@ export function getAvailableTemplates() {
       id: 'wfuCourseSyllabus',
       label: 'WFU SPS Syllabus Summary',
       description: 'High-level syllabus overview page.',
-    }
+    },
   ];
 }
 
 /**
  * Simple Markdown→HTML helper with optional sanitization
  */
-export function markdownToHtml(content: string, options: FormattingOptions = {}): string {
+export function markdownToHtml(
+  content: string,
+  options: FormattingOptions = {}
+): string {
   const { sanitize = true } = options;
   const rawHtml = marked(content || '');
   if (!sanitize) return rawHtml;
@@ -158,9 +169,13 @@ export function wrapInWFUContainer(html: string): string {
 /**
  * WFU SPS Meet Your Faculty page format
  */
-export function formatWFUMeetFaculty(content: string, context: TemplateContext = {}): string {
+export function formatWFUMeetFaculty(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const facultyName = context.facultyName || context.instructorName || 'Faculty Name';
-  const facultyBio = context.facultyBio || content || 'Faculty biography goes here.';
+  const facultyBio =
+    context.facultyBio || content || 'Faculty biography goes here.';
   const facultyImageNumber = context.facultyImageNumber || '1';
 
   const htmlBio = markdownToHtml(facultyBio);
@@ -186,7 +201,10 @@ export function formatWFUMeetFaculty(content: string, context: TemplateContext =
 /**
  * WFU SPS Assessment Overview page format
  */
-export function formatWFUAssessmentOverview(content: string, context: TemplateContext = {}): string {
+export function formatWFUAssessmentOverview(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const html = markdownToHtml(content);
   const courseName = context.courseName || context.title || 'Course Name';
 
@@ -206,7 +224,10 @@ export function formatWFUAssessmentOverview(content: string, context: TemplateCo
 /**
  * WFU SPS Course Welcome page format
  */
-export function formatWFUCourseWelcome(content: string, context: TemplateContext = {}): string {
+export function formatWFUCourseWelcome(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const courseTitle = context.courseName || context.title || 'Course Title';
   const courseCode = context.courseCode || '';
   const html = markdownToHtml(content);
@@ -215,7 +236,9 @@ export function formatWFUCourseWelcome(content: string, context: TemplateContext
   <div class="grid-row">
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
       <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
-        <h1 class="WFU-SubpageHeader">${courseTitle}${courseCode ? ` (${courseCode})` : ''}</h1>
+        <h1 class="WFU-SubpageHeader">${courseTitle}${
+    courseCode ? ` (${courseCode})` : ''
+  }</h1>
         <h2 class="WFU-SubpageSubheader">Welcome to the Course</h2>
         ${html}
       </div>
@@ -227,7 +250,10 @@ export function formatWFUCourseWelcome(content: string, context: TemplateContext
 /**
  * WFU SPS Module page format
  */
-export function formatWFUModule(content: string, context: TemplateContext = {}): string {
+export function formatWFUModule(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const html = markdownToHtml(content);
   const courseName = context.courseName || context.title || 'Course Name';
 
@@ -247,7 +273,10 @@ export function formatWFUModule(content: string, context: TemplateContext = {}):
 /**
  * WFU SPS Learning Materials page format
  */
-export function formatWFULearningMaterials(content: string, context: TemplateContext = {}): string {
+export function formatWFULearningMaterials(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const html = markdownToHtml(content);
   const courseName = context.courseName || context.title || 'Course Name';
 
@@ -267,7 +296,10 @@ export function formatWFULearningMaterials(content: string, context: TemplateCon
 /**
  * WFU SPS Discussion page format
  */
-export function formatWFUDiscussion(content: string, context: TemplateContext = {}): string {
+export function formatWFUDiscussion(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const html = markdownToHtml(content);
   const title = context.title || 'Discussion';
 
@@ -286,9 +318,12 @@ export function formatWFUDiscussion(content: string, context: TemplateContext = 
 /**
  * WFU SPS Instructor Presentation video page format
  */
-function formatWFUInstructorPresentation(content: string, context: TemplateContext = {}): string {
+export function formatWFUInstructorPresentation(
+  content: string,
+  context: TemplateContext = {}
+): string {
   const html = markdownToHtml(content);
-  
+
   // Extract video title from context (e.g., "Introduction to Incident Management")
   const videoTitle = context.videoTitle || 'Video Title';
 
@@ -313,15 +348,10 @@ function formatWFUInstructorPresentation(content: string, context: TemplateConte
 /**
  * WFU SPS Assignment stub (to be implemented)
  */
-function formatWFUAssignment(content: string, context: TemplateContext = {}): string {
+export function formatWFUAssignment(
+  content: string,
+  context: TemplateContext = {}
+): string {
   // TODO: Implement assignment formatting logic
   return '';
 }
-
-export {
-  formatWFUModule,
-  formatWFULearningMaterials,
-  formatWFUInstructorPresentation,
-  formatWFUDiscussion,
-  formatWFUAssignment
-};
