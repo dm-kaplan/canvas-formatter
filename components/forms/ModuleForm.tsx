@@ -33,16 +33,20 @@ interface ModuleFormProps {
 function parseCombinedModuleInput(text: string) {
   const lines = text.split(/\r?\n/);
   const idx = (re: RegExp) => lines.findIndex((l) => re.test(l));
+
+  // 🔧 LOOSEN THESE TWO REGEXES
   const iDesc = idx(/^\s*Module\s+Description\b/i);
   const iObj =
     idx(/^\s*Module\s+Learning\s+Objectives/i) ||
     idx(/\bMLOs\b/i) ||
     idx(/^\s*After\s+completing\s+this\s+module/i);
   const iChecklist = idx(/^\s*Module\s+Checklist\b/i);
+
   const next = [iObj, iChecklist].filter((i) => i >= 0).sort((a, b) => a - b);
   const descStart = iDesc >= 0 ? iDesc + 1 : 0;
   const descEnd = next.length ? next[0] : lines.length;
   const description = lines.slice(descStart, descEnd).join("\n").trim();
+
   let obj: string[] = [];
   if (iObj >= 0) {
     const objEnd = iChecklist >= 0 ? iChecklist : lines.length;
@@ -52,14 +56,20 @@ function parseCombinedModuleInput(text: string) {
       .map((l) => l.trim())
       .filter(Boolean);
   }
+
   let checklist: string[] = [];
   if (iChecklist >= 0) {
     checklist = lines
       .slice(iChecklist + 1)
       .map((l) => l.trim())
       .filter(Boolean)
-      .map((l) => l.replace(/^[●•\-\*]\s+/, '').replace(/^\d+[\.)]\s+/, ''));
+      .map((l) =>
+        l
+          .replace(/^[●•\-\*]\s+/, "")
+          .replace(/^\d+[\.)]\s+/, "")
+      );
   }
+
   return { description, parsedObjectives: obj, parsedChecklist: checklist };
 }
 
