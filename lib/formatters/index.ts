@@ -59,7 +59,7 @@ export function markdownToHtml(
  *
  * Heuristic:
  *  - If there are *blank* lines → split on blank lines.
- *  - Otherwise → split on single newlines (typical Module Description editing).
+ *  - Otherwise → split on single newlines.
  */
 function renderParagraphsFromText(text: string): string {
   const trimmed = text.trim();
@@ -85,7 +85,7 @@ function renderParagraphsFromText(text: string): string {
 /**
  * Global post-processing:
  *  - Bold standard due dates
- *  - Link "Live Instructor-Led Sessions" with course-aware URL
+ *  - Link "Live Instructor-Led Sessions" only when preceded by "See the"
  */
 
 function boldDueDates(html: string): string {
@@ -104,10 +104,11 @@ function linkLiveInstructorSessions(
 
   const url = `https://wakeforest.instructure.com/courses/${courseId}/pages/live-instructor-led-sessions`;
 
-  // Replace plain-text mentions with a Canvas-style link
+  // Only link the phrase after "See the", e.g.:
+  // "See the Live Instructor-Led Sessions page..."
   return html.replace(
-    /Live Instructor-Led Sessions?/g,
-    `<a href="${url}" data-api-endpoint="${url}" data-api-returntype="Page">Live Instructor-Led Sessions</a>`
+    /See the Live Instructor-Led Sessions/g,
+    `See the <a href="${url}" data-api-endpoint="${url}" data-api-returntype="Page">Live Instructor-Led Sessions</a>`
   );
 }
 
@@ -164,9 +165,7 @@ export function formatWFUCourseSyllabus(
       </div>
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="WFU-Container-DarkText" style="padding: 0px 15px 0px 15px;">
-          <h1 class="WFU-SubpageHeader">${courseName} (${
-    context.courseCode || ""
-  })</h1>
+          <h1 class="WFU-SubpageHeader">${courseName} (${context.courseCode || ""})</h1>
           <h2 class="WFU-SubpageSubheader">Course Syllabus</h2>
           <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span>${instructorName}, ${credentials}</strong></p>
           <p><strong>Email:&nbsp;</strong><a href="mailto:${instructorEmail}">${instructorEmail}</a></p>
@@ -328,14 +327,6 @@ export function formatWFUCourseWelcome(
 
 /**
  * WFU SPS Module page format
- *
- * Handles:
- *  - Hero banner (WFU-SubpageHeroModuleX)
- *  - Paragraphs in the description
- *  - Objectives list
- *  - Checklist list
- *  - Cleans up "Module Description" header in content
- *  - Splits objectives/checklist even if "Module Checklist" leaked into objectives[]
  */
 export function formatWFUModule(
   content: string,
