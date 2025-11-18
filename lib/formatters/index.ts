@@ -24,6 +24,8 @@ export interface TemplateContext {
   dueDate?: string;
   pointsPossible?: number;
   objectives?: string[];
+  moduleNumber?: string;
+  checklist?: string[];
   [key: string]: any;
 }
 
@@ -252,24 +254,61 @@ export function formatWFUCourseWelcome(
 
 /**
  * WFU SPS Module page format
+ * Matches the structure of the M1 example, using context.moduleNumber,
+ * context.courseName, context.objectives, and context.checklist.
  */
 export function formatWFUModule(
   content: string,
   context: TemplateContext = {}
 ): string {
-  const html = markdownToHtml(content);
   const courseName = context.courseName || context.title || 'Course Name';
+  const moduleNumber = context.moduleNumber || '1';
+  const descriptionHtml = markdownToHtml(content);
+
+  const objectives = (context.objectives || []) as string[];
+  const checklist = (context.checklist || []) as string[];
+
+  const heroClass = `WFU-SubpageHeroModule${moduleNumber}`;
+
+  const objectivesSection =
+    objectives.length > 0
+      ? `<h3>Module Objectives</h3>
+            <p>After completing this module, you should be able to:</p>
+            <ol>
+                ${objectives.map((o) => `<li>${o}</li>`).join('')}
+            </ol>`
+      : '';
+
+  const checklistSection =
+    checklist.length > 0
+      ? `<h3>Module Checklist</h3>
+            <ul>
+                ${checklist.map((item) => `<li>${item}</li>`).join('')}
+            </ul>`
+      : '';
 
   return `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
-        <h1 class="WFU-SubpageHeader">${courseName}</h1>
-        <h2 class="WFU-SubpageSubheader">Module Overview</h2>
-        ${html}
-      </div>
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader ${heroClass}">&nbsp;
+                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
+        </div>
     </div>
-  </div>
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseName}</p>
+            <h2 class="WFU-SubpageSubheader">Module ${moduleNumber} Overview</h2>
+            ${descriptionHtml}
+            ${objectivesSection}
+            ${checklistSection}
+        </div>
+        <div class="grid-row">
+            <div class="col-xs-12">
+                <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+            </div>
+        </div>
+    </div>
 </div>`;
 }
 
