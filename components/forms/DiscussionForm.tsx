@@ -56,23 +56,6 @@ export default function DiscussionForm({
   const [generatedHtml, setGeneratedHtml] = useState("");
   const [showModal, setShowModal] = useState(false);
   const htmlTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [livePreviewHtml, setLivePreviewHtml] = useState("");
-
-  // LIVE PREVIEW EFFECT (no more discussionTitle)
-  useEffect(() => {
-    const context: TemplateContext = {
-      ...formData,
-      baseUrl,
-      courseId,
-    };
-    if (formData.rawContent.trim()) {
-      setLivePreviewHtml(
-        formatContent(formData.rawContent, "wfuDiscussion", context)
-      );
-    } else {
-      setLivePreviewHtml("");
-    }
-  }, [formData.rawContent, baseUrl, courseId, formData.discussionId]);
 
   const handleChange = (f: keyof DiscussionFormData, v: any) =>
     setFormData((p) => ({ ...p, [f]: v }));
@@ -127,10 +110,10 @@ export default function DiscussionForm({
           const inner = serializeChildren(el);
           return inner ? `*${inner}*` : "";
         }
-        if (el.tagName === "A") {
+       if (el.tagName === "A") {
           const label = (el.textContent || "").trim();
           const href = (el.getAttribute("href") || "").trim();
-          return href ? `${label} ${href}` : label;
+          return href ? `[${label}](${href})` : label;
         }
         if (el.tagName === "OL") {
           currentListDepth++;
@@ -279,28 +262,6 @@ export default function DiscussionForm({
             </button>
           </div>
         </form>
-      </div>
-
-      {/* LIVE PREVIEW SECTION */}
-      <div className="mt-8">
-        <h3 className="text-md font-semibold text-gray-800 mb-2">
-          Live Preview
-        </h3>
-        <div className="border border-gray-200 rounded bg-gray-50 p-4 overflow-x-auto">
-          {livePreviewHtml ? (
-            <div
-              className="prose max-w-none"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: livePreviewHtml }}
-            />
-          ) : (
-            <span className="text-gray-400">Nothing to preview yet.</span>
-          )}
-        </div>
-        <p className="text-xs text-gray-500 mt-1">
-          This preview shows how your input will be formatted for Canvas. Check
-          that all sections and lists appear as expected.
-        </p>
       </div>
 
       {/* HTML MODAL */}
