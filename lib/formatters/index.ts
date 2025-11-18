@@ -623,17 +623,19 @@ export function formatWFUDiscussion(
     tipText = text.slice(start, end).trim();
   }
 
-  // Convert each block via markdown → HTML
-  const promptHtml = promptText ? markdownToHtml(promptText) : "";
+    // Convert each block via markdown → HTML
+
+  // Strip a leading "Prompt:" label so it doesn't duplicate our <h3>Prompt:</h3>
+  let cleanedPrompt = promptText.replace(/^\s*Prompt\s*:?\s*/i, "").trim();
+  const promptHtml = cleanedPrompt ? markdownToHtml(cleanedPrompt) : "";
+
   const objectiveHtml = objectivesText ? markdownToHtml(objectivesText) : "";
   const responseHtml = responseText ? markdownToHtml(responseText) : "";
   const instructionsHtml = instructionsText
     ? markdownToHtml(instructionsText)
     : "";
   const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
-  const tipHtml = tipText
-    ? markdownToHtml(`**TIP:** ${tipText}`)
-    : "";
+  const tipHtml = tipText ? markdownToHtml(`**TIP:** ${tipText}`) : "";
 
   // Decide whether to use "objective" or "objectives" in the line
   const alignPlural = /objective[s]/i.test(text);
