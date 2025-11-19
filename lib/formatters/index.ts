@@ -370,10 +370,9 @@ export function formatWFUModule(
 
   // Remove leading "Module Description" label if it slipped into content
   let descText = content || "";
-  descText = descText.replace(
-    /^\s*Module\s+Description\s*:?\s*/i,
-    ""
-  ).trim();
+  descText = descText
+    .replace(/^\s*Module\s+Description\s*:?\s*/i, "")
+    .trim();
 
   // Turn description into proper <p> paragraphs
   const descriptionHtml = renderParagraphsFromText(descText);
@@ -421,10 +420,8 @@ export function formatWFUModule(
     const next = checklist[i + 1] || "";
     const next2 = checklist[i + 2] || "";
 
-    const isInitialPost =
-      /^Initial post due by\b/i.test(next.trim());
-    const isTwoReplies =
-      /^Two reply posts due by\b/i.test(next2.trim());
+    const isInitialPost = /^Initial post due by\b/i.test(next.trim());
+    const isTwoReplies = /^Two reply posts due by\b/i.test(next2.trim());
 
     if (isDiscussion && isInitialPost && isTwoReplies) {
       checklistItemsHtml.push(
@@ -623,7 +620,7 @@ export function formatWFUDiscussion(
     tipText = text.slice(start, end).trim();
   }
 
-    // Convert each block via markdown → HTML
+  // Convert each block via markdown → HTML
 
   // Strip a leading "Prompt:" label so it doesn't duplicate our <h3>Prompt:</h3>
   let cleanedPrompt = promptText.replace(/^\s*Prompt\s*:?\s*/i, "").trim();
@@ -700,21 +697,201 @@ export function formatWFUInstructorPresentation(
 }
 
 /**
- * WFU SPS Assignment page format (basic)
+ * WFU SPS Assignment page format
+ *
+ * Parses a standardized assignment block containing labels like:
+ *  - Purpose:
+ *  - Task:
+ *  - Scenario:
+ *  - Instructions:
+ *  - Formatting Requirements:
+ *  - Submission Instructions:
+ *  - Criteria for Success (Grading Rubric):
+ *
+ * and turns them into structured headings + sections.
  */
 export function formatWFUAssignment(
   content: string,
   context: TemplateContext = {}
 ): string {
-  const htmlContent = markdownToHtml(content);
   const title = context.title || "Assignment";
+
+  // Normalize text
+  let text = (content || "").replace(/\r\n/g, "\n").trim();
+  // Strip leftover markdown bold markers – we’ll format via HTML
+  text = text.replace(/\*{2,}/g, "");
+
+  const len = text.length;
+
+  const findLabel = (re: RegExp, from = 0): [number, number] | null => {
+    const slice = text.slice(from);
+    const m = slice.match(re);
+    if (!m || m.index === undefined) return null;
+    const start = from + m.index;
+    const end = start + m[0].length;
+    return [start, end];
+  };
+
+  const rePurpose = /Purpose\s*:/i;
+  const reTask = /Task\s*:/i;
+  const reScenario = /Scenario\s*:/i;
+  const reInstructions = /Instructions\s*:/i;
+  const reFormatting = /Formatting Requirements\s*:/i;
+  const reSubmission = /Submission Instructions\s*:/i;
+  const reCriteria = /Criteria for Success[^:]*:/i;
+
+  const purposePos = findLabel(rePurpose);
+  const taskPos = findLabel(reTask);
+  const scenarioPos = findLabel(reScenario);
+  const instructionsPos = findLabel(reInstructions);
+  const formattingPos = findLabel(reFormatting);
+  const submissionPos = findLabel(reSubmission);
+  const criteriaPos = findLabel(reCriteria);
+
+  const earliest = (...indices: Array<number | null>): number => {
+    const valid = indices.filter(
+      (i): i is number => i !== null && i >= 0
+    );
+    return valid.length ? Math.min(...valid) : len;
+  };
+
+  // PURPOSE
+  let purposeText = "";
+  if (purposePos) {
+    const start = purposePos[1];
+    const end = earliest(
+      taskPos ? taskPos[0] : null,
+      scenarioPos ? scenarioPos[0] : null,
+      instructionsPos ? instructionsPos[0] : null,
+      formattingPos ? formattingPos[0] : null,
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    purposeText = text.slice(start, end).trim();
+  }
+
+  // TASK
+  let taskText = "";
+  if (taskPos) {
+    const start = taskPos[1];
+    const end = earliest(
+      scenarioPos ? scenarioPos[0] : null,
+      instructionsPos ? instructionsPos[0] : null,
+      formattingPos ? formattingPos[0] : null,
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    taskText = text.slice(start, end).trim();
+  }
+
+  // SCENARIO
+  let scenarioText = "";
+  if (scenarioPos) {
+    const start = scenarioPos[1];
+    const end = earliest(
+      instructionsPos ? instructionsPos[0] : null,
+      formattingPos ? formattingPos[0] : null,
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    scenarioText = text.slice(start, end).trim();
+  }
+
+  // INSTRUCTIONS (we may merge Formatting Requirements into this)
+  let instructionsText = "";
+  if (instructionsPos) {
+    const start = instructionsPos[1];
+    const end = earliest(
+      formattingPos ? formattingPos[0] : null,
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    instructionsText = text.slice(start, end).trim();
+  }
+
+  // FORMATTING REQUIREMENTS – merged into Instructions if present
+  let formattingText = "";
+  if (formattingPos) {
+    const start = formattingPos[1];
+    const end = earliest(
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    formattingText = text.slice(start, end).trim();
+  }
+
+  const combinedInstructionsText = [instructionsText, formattingText]
+    .filter(Boolean)
+    .join("\n\n");
+
+  // SUBMISSION INSTRUCTIONS
+  let submissionText = "";
+  if (submissionPos) {
+    const start = submissionPos[1];
+    const end = earliest(criteriaPos ? criteriaPos[0] : null);
+    submissionText = text.slice(start, end).trim();
+  }
+
+  // CRITERIA
+  let criteriaText = "";
+  if (criteriaPos) {
+    const start = criteriaPos[1];
+    const end = len;
+    criteriaText = text.slice(start, end).trim();
+    criteriaText = criteriaText.replace(/^\(?Grading Rubric\)?:?\s*/i, "").trim();
+  }
+
+  // Convert sections via markdown → HTML
+  const purposeHtml = purposeText ? markdownToHtml(purposeText) : "";
+  const taskHtml = taskText ? markdownToHtml(taskText) : "";
+  const scenarioHtml = scenarioText ? markdownToHtml(scenarioText) : "";
+  const instructionsHtml = combinedInstructionsText
+    ? markdownToHtml(combinedInstructionsText)
+    : "";
+  const submissionHtml = submissionText ? markdownToHtml(submissionText) : "";
+  const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
 
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
           <h1 class="WFU-SubpageHeader">${title}</h1>
-          ${htmlContent}
+          ${
+            purposeHtml
+              ? `<h3>Purpose:</h3>
+          ${purposeHtml}`
+              : ""
+          }
+          ${
+            scenarioHtml
+              ? `<h3>Scenario:</h3>
+          ${scenarioHtml}`
+              : ""
+          }
+          ${
+            taskHtml
+              ? `<h3>Task:</h3>
+          ${taskHtml}`
+              : ""
+          }
+          ${
+            instructionsHtml
+              ? `<h3>Instructions:</h3>
+          ${instructionsHtml}`
+              : ""
+          }
+          ${
+            submissionHtml
+              ? `<h3>Submission Instructions:</h3>
+          ${submissionHtml}`
+              : ""
+          }
+          ${
+            criteriaHtml
+              ? `<h3>Criteria for Success (Grading Rubric):</h3>
+          ${criteriaHtml}`
+              : ""
+          }
         </div>
       </div>
     </div>
