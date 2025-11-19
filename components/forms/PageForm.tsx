@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, FormEvent, useEffect } from "react";
-import { type TemplateType } from "@/lib/formatters";
+
+import React, { useState, FormEvent } from "react";
 
 export interface PageFormData {
   title: string;
@@ -8,7 +8,7 @@ export interface PageFormData {
   overwritePageId?: string;
   moduleId?: string;
   canvasToken?: string;
-  moduleNumber?: string; // NEW: module number for banner
+  moduleNumber?: string;
 }
 
 interface CanvasModule {
@@ -17,166 +17,96 @@ interface CanvasModule {
   position: number;
 }
 
+// Make all the extra props optional so page.tsx can still pass them,
+// even though we don't use them here.
 interface PageFormProps {
-  onSubmit: (d: PageFormData) => Promise<void>;
+  onSubmit?: (d: PageFormData) => Promise<void>;
   isLoading?: boolean;
   modules?: CanvasModule[];
   isLoadingModules?: boolean;
-  onRefreshModules?: () => Promise<void>;
+  onRefreshModules?: () => Promise<void> | void;
   courseId?: string;
 }
 
 export default function PageForm({
   onSubmit,
   isLoading = false,
-  modules = [],
-  isLoadingModules = false,
-  onRefreshModules,
-  courseId,
 }: PageFormProps) {
-  const [formData, setFormData] = useState<PageFormData>({
-    title: "",
-    rawContent: "",
-    overwritePageId: undefined,
-    moduleId: undefined,
-    canvasToken: "",
-    moduleNumber: "",
-  });
-
-  const [canvasPages, setCanvasPages] = useState<any[]>([]);
-  const [isLoadingPages, setIsLoadingPages] = useState(false);
-  const [pagesError, setPagesError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string>("");
-
-  const handleChange = (field: keyof PageFormData, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // Fetch all Canvas pages for the dropdown, using courseId from props
-  const fetchPages = async (cid?: string) => {
-    const effectiveCourseId = cid || courseId;
-
-    setDebugInfo(
-      `fetchPages called with courseId=${
-        effectiveCourseId || "[none]"
-      }, token=${formData.canvasToken ? "[provided]" : "[none]"}`
-    );
-    setIsLoadingPages(true);
-    setPagesError(null);
-
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_CANVAS_BASE_URL;
-      if (!baseUrl || !effectiveCourseId) {
-        setPagesError("Enter a Course ID to load pages.");
-        setCanvasPages([]);
-        setIsLoadingPages(false);
-        return;
-      }
-
-      let url = `/api/pages?canvasBaseUrl=${encodeURIComponent(
-        baseUrl
-      )}&courseId=${encodeURIComponent(effectiveCourseId)}`;
-
-      if (formData.canvasToken && formData.canvasToken.trim()) {
-        url += `&canvasToken=${encodeURIComponent(
-          formData.canvasToken.trim()
-        )}`;
-      }
-
-      let data: any;
-      try {
-        const res = await fetch(url);
-        data = await res.json();
-        setDebugInfo((prev) => prev + `\nAPI response: ${JSON.stringify(data)}`);
-      } catch (networkErr) {
-        setPagesError(
-          "Network error: Could not reach the server. Is the backend running?"
-        );
-        setDebugInfo((prev) => prev + `\nNetwork error: ${networkErr}`);
-        setCanvasPages([]);
-        setIsLoadingPages(false);
-        return;
-      }
-
-      if (data.success) {
-        setCanvasPages(data.data);
-      } else {
-        setPagesError(data.error || "Failed to load pages.");
-        setCanvasPages([]);
-      }
-    } catch (err) {
-      setPagesError(
-        "Unexpected error: " +
-          (err instanceof Error ? err.message : String(err))
-      );
-      setCanvasPages([]);
-      setDebugInfo((prev) => prev + `\nUnexpected error: ${err}`);
-    } finally {
-      setIsLoadingPages(false);
-    }
-  };
-
-  // Watch for courseId or canvasToken changes and fetch pages
-  useEffect(() => {
-    if (courseId) {
-      fetchPages(courseId);
-    } else {
-      setCanvasPages([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, formData.canvasToken]);
+  const [title, setTitle] = useState("");
+  const [moduleNumber, setModuleNumber] = useState<string>("");
+  const [rawContent, setRawContent] = useState("");
+  const [generatedHtml, setGeneratedHtml] = useState("");
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"" | "copied" | "error">("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    let finalRawContent = formData.rawContent;
-
-    // If module number is provided, prepend the WFU SPS module banner
-    if (formData.moduleNumber) {
-      const moduleNumber = formData.moduleNumber;
-      const bannerHtml = `<div class="grid-row">
+    // Build banner if a module number is selected
+    let bannerHtml = "";
+    if (moduleNumber) {
+      bannerHtml = `<div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-            <div class="WFU-SubpageHeader WFU-SubpageHeroModule${moduleNumber}">&nbsp;
-                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
-            </div>
+          <div class="WFU-SubpageHeader WFU-SubpageHeroModule${moduleNumber}">&nbsp;
+            <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+          </div>
         </div>
-    </div>`;
-
-      // Prepend the banner so it appears above the course title/content
-      finalRawContent = `${bannerHtml}\n${formData.rawContent}`;
+      </div>`;
     }
 
-    await onSubmit({
-      ...formData,
-      rawContent: finalRawContent,
-    });
+    // Wrap the content in the standard WFU container and prepend banner
+    const finalHtml = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+${bannerHtml}
+${rawContent}
+</div>`;
+
+    setGeneratedHtml(finalHtml);
+    setHasGenerated(true);
+    setCopyStatus("");
+
+    // If parent provided an onSubmit, pass the final HTML up as well
+    if (onSubmit) {
+      await onSubmit({
+        title,
+        rawContent: finalHtml,
+        moduleNumber,
+      });
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedHtml);
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus(""), 2000);
+    } catch {
+      setCopyStatus("error");
+      setTimeout(() => setCopyStatus(""), 2000);
+    }
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4 capitalize">
-        Create Generic Page
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        Generic Page (with Module Banner)
       </h2>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Page Title */}
+        {/* Page Title (optional for reference only) */}
         <div>
           <label
             htmlFor="title"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Page Title *
+            Page Title (optional)
           </label>
           <input
             id="title"
             type="text"
-            value={formData.title}
-            onChange={(e) => handleChange("title", e.target.value)}
-            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-            placeholder="Page Title"
+            placeholder="Internal reference or Canvas page title"
           />
         </div>
 
@@ -190,8 +120,8 @@ export default function PageForm({
           </label>
           <select
             id="moduleNumber"
-            value={formData.moduleNumber || ""}
-            onChange={(e) => handleChange("moduleNumber", e.target.value)}
+            value={moduleNumber}
+            onChange={(e) => setModuleNumber(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
           >
@@ -203,8 +133,8 @@ export default function PageForm({
             ))}
           </select>
           <p className="text-xs text-gray-500 mt-1">
-            This will add the correct WFU SPS module banner above your course
-            title in the page content.
+            This controls the WFU banner class (WFU-SubpageHeroModuleX) above
+            your content.
           </p>
         </div>
 
@@ -218,122 +148,65 @@ export default function PageForm({
           </label>
           <textarea
             id="rawContent"
-            value={formData.rawContent}
-            onChange={(e) => handleChange("rawContent", e.target.value)}
+            value={rawContent}
+            onChange={(e) => setRawContent(e.target.value)}
             rows={10}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-            placeholder="Enter page content..."
+            placeholder="Paste or write the HTML body for this page..."
           />
+          <p className="text-xs text-gray-500 mt-1">
+            The module banner and WFU container will be added automatically.
+          </p>
         </div>
 
-        {/* Canvas token + overwrite page */}
-        <div className="space-y-2">
-          <label
-            htmlFor="canvasToken"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Canvas API Token (optional, for troubleshooting)
-          </label>
-          <input
-            id="canvasToken"
-            type="text"
-            value={formData.canvasToken || ""}
-            onChange={(e) => handleChange("canvasToken", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Paste your Canvas API token here (optional)"
-            autoComplete="off"
-          />
-
-          <label
-            htmlFor="overwritePageId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Overwrite existing page (optional)
-          </label>
-          <div className="flex items-center gap-2">
-            <select
-              id="overwritePageId"
-              value={formData.overwritePageId || ""}
-              onChange={(e) =>
-                handleChange("overwritePageId", e.target.value || undefined)
-              }
-              disabled={isLoadingPages}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="">-- None --</option>
-              {canvasPages.map((p) => (
-                <option key={p.url} value={p.url}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => fetchPages(courseId)}
-              disabled={isLoadingPages || !courseId}
-              className="text-xs text-canvas-blue hover:underline disabled:opacity-50"
-            >
-              {isLoadingPages ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
-          {pagesError && (
-            <div className="text-xs text-red-500 mt-1">{pagesError}</div>
-          )}
-          {debugInfo && (
-            <pre className="text-xs text-gray-400 bg-gray-100 rounded p-2 mt-1 max-h-40 overflow-auto">
-              {debugInfo}
-            </pre>
-          )}
-        </div>
-
-        {/* Canvas module selection */}
-        <div className="space-y-2">
-          <label
-            htmlFor="moduleId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Canvas Module (Optional)
-          </label>
-          <select
-            id="moduleId"
-            value={formData.moduleId || ""}
-            onChange={(e) =>
-              handleChange("moduleId", e.target.value || undefined)
-            }
-            disabled={isLoadingModules}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          >
-            <option value="">-- Choose --</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-          {onRefreshModules && (
-            <button
-              type="button"
-              onClick={onRefreshModules}
-              disabled={isLoadingModules}
-              className="text-xs text-canvas-blue hover:underline disabled:opacity-50 ml-2"
-            >
-              {isLoadingModules ? "Refreshing..." : "Refresh"}
-            </button>
-          )}
-        </div>
-
-        {/* Submit */}
+        {/* Generate HTML */}
         <div className="pt-2">
           <button
             type="submit"
             disabled={isLoading}
             className="w-full px-4 py-2 bg-canvas-blue text-white rounded-md disabled:opacity-50"
           >
-            {isLoading ? "Creating Page..." : "Create Page"}
+            {isLoading ? "Generating..." : "Generate HTML"}
           </button>
         </div>
       </form>
+
+      {/* Output area */}
+      {hasGenerated && (
+        <div className="mt-6">
+          <label
+            htmlFor="generatedHtml"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Generated HTML
+          </label>
+          <textarea
+            id="generatedHtml"
+            value={generatedHtml}
+            readOnly
+            rows={12}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-xs bg-gray-50"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="px-3 py-1 text-xs rounded-md border border-gray-300 hover:bg-gray-100"
+            >
+              Copy to Clipboard
+            </button>
+            {copyStatus === "copied" && (
+              <span className="text-xs text-green-600">Copied!</span>
+            )}
+            {copyStatus === "error" && (
+              <span className="text-xs text-red-600">
+                Unable to copy. You can still select and copy manually.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
