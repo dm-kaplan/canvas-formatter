@@ -13,7 +13,7 @@ import ModuleForm from "@/components/forms/ModuleForm";
 import SyllabusForm from "@/components/forms/SyllabusForm";
 import AssignmentForm from "@/components/forms/AssignmentForm";
 import ConfigForm from "@/components/ConfigForm"; // Assuming this is part of the UI
-import GenericPageForm from "@/components/forms/GenericPageForm";
+import PageForm from "@/components/forms/PageForm";
 
 // Define the available form types
 type FormType =
@@ -63,7 +63,7 @@ export default function Home() {
       case "assignment":
         return <AssignmentForm {...dummyProps} />;
       case "page":
-        return <GenericPageForm {...dummyProps} />;
+        return <PageForm {...dummyProps} />;
       default:
         return <ConfigForm />;
     }
