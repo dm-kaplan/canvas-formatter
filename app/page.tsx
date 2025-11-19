@@ -12,8 +12,8 @@ import MeetFacultyForm from "@/components/forms/MeetFacultyForm";
 import ModuleForm from "@/components/forms/ModuleForm";
 import SyllabusForm from "@/components/forms/SyllabusForm";
 import AssignmentForm from "@/components/forms/AssignmentForm";
-import ConfigForm from "@/components/ConfigForm"; // Assuming this is part of the UI
-import PageForm from "@/components/forms/PageForm";
+import ConfigForm from "@/components/ConfigForm";
+import PageForm, { type PageFormData } from "@/components/forms/PageForm";
 
 // Define the available form types
 type FormType =
@@ -30,14 +30,26 @@ type FormType =
   | "page";
 
 export default function Home() {
-
   const [activeForm, setActiveForm] = useState<FormType>("config");
-  // Dummy props for components that might still expect them
-  // You can clean these up inside the components later
+
+  // Dummy props for most forms
   const dummyProps = {
     isLoading: false,
     baseUrl: "/",
     courseId: "1",
+  };
+
+  // Dummy props specifically for PageForm (matches PageFormProps)
+  const dummyPageProps = {
+    isLoading: false,
+    modules: [] as any[],
+    isLoadingModules: false,
+    onRefreshModules: async () => {},
+    courseId: "1",
+    onSubmit: async (_data: PageFormData) => {
+      // You can later replace this with a real Canvas API call
+      console.log("PageForm submitted:", _data);
+    },
   };
 
   const renderForm = () => {
@@ -63,7 +75,8 @@ export default function Home() {
       case "assignment":
         return <AssignmentForm {...dummyProps} />;
       case "page":
-        return <PageForm {...dummyProps} />;
+        // Use the new PageForm with proper props (including onSubmit)
+        return <PageForm {...dummyPageProps} />;
       default:
         return <ConfigForm />;
     }
