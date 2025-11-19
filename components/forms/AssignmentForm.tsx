@@ -1,12 +1,10 @@
 "use client";
 import React, { useState, FormEvent } from "react";
-import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
+import { formatContent, type TemplateContext } from "@/lib/formatters";
 
 export interface AssignmentFormData {
   title: string;
   rawContent: string;
-  moduleNumber: string;
-  courseName: string;
 }
 
 interface AssignmentFormProps {
@@ -17,24 +15,22 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
   const [formData, setFormData] = useState<AssignmentFormData>({
     title: "",
     rawContent: "",
-    moduleNumber: "",
-    courseName: "",
   });
+
   const [generatedHtml, setGeneratedHtml] = useState("");
   const [showModal, setShowModal] = useState(false);
   const htmlTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
-  const handleChange = (f: keyof AssignmentFormData, v: any) =>
-    setFormData((p) => ({ ...p, [f]: v }));
+  const handleChange = (field: keyof AssignmentFormData, value: any) =>
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+
     const context: TemplateContext = {
-      ...formData,
       title: formData.title,
-      moduleNumber: formData.moduleNumber,
-      courseName: formData.courseName,
     };
+
     const finalHtml = formatContent(formData.rawContent, "wfuAssignment", context);
     setGeneratedHtml(finalHtml);
     setShowModal(true);
@@ -43,7 +39,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
   const copyToClipboard = () => {
     if (htmlTextareaRef.current) {
       htmlTextareaRef.current.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
     }
   };
 
@@ -52,7 +48,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
       <h2 className="text-xl font-semibold text-gray-900 mb-4 capitalize">
         Format Assignment
       </h2>
+
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Assignment Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
             Assignment Title *
@@ -61,40 +59,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
             id="title"
             type="text"
             value={formData.title}
-            onChange={e => handleChange("title", e.target.value)}
+            onChange={(e) => handleChange("title", e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
             placeholder="Assignment Title"
           />
         </div>
-        <div>
-          <label htmlFor="moduleNumber" className="block text-sm font-medium text-gray-700 mb-1">
-            Module Number *
-          </label>
-          <input
-            id="moduleNumber"
-            type="text"
-            value={formData.moduleNumber}
-            onChange={e => handleChange("moduleNumber", e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-            placeholder="Module Number"
-          />
-        </div>
-        <div>
-          <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">
-            Course Name *
-          </label>
-          <input
-            id="courseName"
-            type="text"
-            value={formData.courseName}
-            onChange={e => handleChange("courseName", e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-            placeholder="Course Name"
-          />
-        </div>
+
+        {/* Assignment Content */}
         <div>
           <label htmlFor="rawContent" className="block text-sm font-medium text-gray-700 mb-1">
             Assignment Content *
@@ -102,46 +74,52 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
           <textarea
             id="rawContent"
             value={formData.rawContent}
-            onChange={e => handleChange("rawContent", e.target.value)}
+            onChange={(e) => handleChange("rawContent", e.target.value)}
             rows={10}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
             placeholder="Enter assignment content..."
           />
         </div>
+
         <div className="pt-2">
           <button
             type="submit"
             disabled={isLoading}
             className="w-full px-4 py-2 bg-canvas-blue text-white rounded-md disabled:opacity-50"
           >
-            {isLoading ? `Generating...` : `Generate HTML`}
+            {isLoading ? "Generating..." : "Generate HTML"}
           </button>
         </div>
       </form>
+
+      {/* Modal */}
       {showModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
           onClick={() => setShowModal(false)}
         >
-          <div 
+          <div
             className="relative mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-medium text-gray-900 mb-4">Generated HTML</h3>
+
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Click "Copy HTML".<br/>
-                Go to a Canvas Assignment.<br/>
-                Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br/>
+                Click "Copy HTML".<br />
+                Go to a Canvas Assignment.<br />
+                Click the <strong>&lt;/&gt;</strong> (HTML Editor) button.<br />
                 Paste this code into the editor.
               </p>
+
               <textarea
                 ref={htmlTextareaRef}
                 readOnly
                 className="w-full h-64 p-2 border border-gray-300 rounded-md font-mono text-xs bg-gray-50"
                 value={generatedHtml}
               />
+
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={copyToClipboard}
@@ -149,6 +127,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
                 >
                   Copy HTML
                 </button>
+
                 <button
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md"
@@ -157,6 +136,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ isLoading = false }) =>
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}
