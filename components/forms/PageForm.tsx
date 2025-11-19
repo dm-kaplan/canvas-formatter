@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useMemo, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { type TemplateType } from "@/lib/formatters";
 
 export interface PageFormData {
@@ -8,7 +8,7 @@ export interface PageFormData {
   overwritePageId?: string;
   moduleId?: string;
   canvasToken?: string;
-  moduleNumber?: string; // NEW: selected module number (1–16)
+  moduleNumber?: string; // selected module number (1–16)
 }
 
 interface CanvasModule {
@@ -43,13 +43,19 @@ export default function PageForm({
     moduleNumber: undefined,
   });
 
-  // ...existing code...
   const [canvasPages, setCanvasPages] = useState<any[]>([]);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
   const [pagesError, setPagesError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
-  // Fetch all Canvas pages for the dropdown, using courseId from form
+  const handleChange = (field: keyof PageFormData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Fetch all Canvas pages for the dropdown, using courseId from props
   const fetchPages = async (cid?: string) => {
     setDebugInfo(
       `fetchPages called with courseId=${
@@ -58,23 +64,28 @@ export default function PageForm({
     );
     setIsLoadingPages(true);
     setPagesError(null);
+
     try {
       const baseUrl = process.env.NEXT_PUBLIC_CANVAS_BASE_URL;
       const realCourseId = cid || courseId;
+
       if (!baseUrl || !realCourseId) {
         setPagesError("Enter a Course ID to load pages.");
         setIsLoadingPages(false);
         setCanvasPages([]);
         return;
       }
+
       let url = `/api/pages?canvasBaseUrl=${encodeURIComponent(
         baseUrl
       )}&courseId=${encodeURIComponent(realCourseId)}`;
+
       if (formData.canvasToken && formData.canvasToken.trim()) {
         url += `&canvasToken=${encodeURIComponent(
           formData.canvasToken.trim()
         )}`;
       }
+
       let data: any;
       try {
         const res = await fetch(url);
@@ -89,6 +100,7 @@ export default function PageForm({
         setIsLoadingPages(false);
         return;
       }
+
       if (data.success) {
         setCanvasPages(data.data);
       } else {
@@ -121,9 +133,6 @@ export default function PageForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, formData.canvasToken]);
 
-  const handleChange = (f: keyof PageFormData, v: any) =>
-    setFormData((p) => ({ ...p, [f]: v }));
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -131,9 +140,11 @@ export default function PageForm({
     let finalRawContent = formData.rawContent;
 
     if (formData.moduleNumber) {
+      const moduleNumber = formData.moduleNumber;
+
       const bannerHtml = `<div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-            <div class="WFU-SubpageHeader WFU-SubpageHeroModule${formData.moduleNumber}">&nbsp;
+            <div class="WFU-SubpageHeader WFU-SubpageHeroModule${moduleNumber}">&nbsp;
                 <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
             </div>
         </div>
@@ -143,10 +154,11 @@ export default function PageForm({
       finalRawContent = `${bannerHtml}\n${formData.rawContent}`;
     }
 
-    await onSubmit({ ...formData, rawContent: finalRawContent });
+    await onSubmit({
+      ...formData,
+      rawContent: finalRawContent,
+    });
   };
-
-  // ...existing code...
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -154,6 +166,7 @@ export default function PageForm({
         Create Generic Page
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Page Title */}
         <div>
           <label
             htmlFor="title"
@@ -172,7 +185,7 @@ export default function PageForm({
           />
         </div>
 
-        {/* NEW: Module Number dropdown (1–16) */}
+        {/* Module Number dropdown (1–16) */}
         <div>
           <label
             htmlFor="moduleNumber"
@@ -200,6 +213,7 @@ export default function PageForm({
           </p>
         </div>
 
+        {/* Page Content */}
         <div>
           <label
             htmlFor="rawContent"
@@ -218,6 +232,7 @@ export default function PageForm({
           />
         </div>
 
+        {/* Canvas API token + overwrite page */}
         <div className="space-y-2">
           <label
             htmlFor="canvasToken"
@@ -280,7 +295,7 @@ export default function PageForm({
           )}
         </div>
 
-        {/* Removed 'Publish immediately' checkbox */}
+        {/* Canvas Module selection */}
         <div className="space-y-2">
           <label
             htmlFor="moduleId"
@@ -316,6 +331,7 @@ export default function PageForm({
           )}
         </div>
 
+        {/* Submit */}
         <div className="pt-2">
           <button
             type="submit"
@@ -325,7 +341,6 @@ export default function PageForm({
             {isLoading ? `Creating Page...` : `Create Page`}
           </button>
         </div>
-        {/* Preview removed */}
       </form>
     </div>
   );
