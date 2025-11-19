@@ -874,7 +874,7 @@ export function formatWFUAssignment(
   const scenarioHtml = scenarioText ? markdownToHtml(scenarioText) : "";
   const taskHtml = taskText ? markdownToHtml(taskText) : "";
 
-  // --- INSTRUCTIONS ---
+      // --- INSTRUCTIONS ---
   let instructionsHtml = "";
   if (combinedInstructionsText) {
     // If author already used markdown list syntax, let markdown render it as-is
@@ -883,7 +883,7 @@ export function formatWFUAssignment(
     if (hasListSyntax) {
       instructionsHtml = markdownToHtml(combinedInstructionsText);
     } else {
-      // Otherwise: first line is an intro <p>, remaining lines become a bullet list
+      // Otherwise: first line is an intro <p>, remaining lines form a nested list
       const lines = combinedInstructionsText
         .split(/\n+/)
         .map((l) => l.trim())
@@ -895,16 +895,68 @@ export function formatWFUAssignment(
         introBlock = markdownToHtml(introLine);
       }
 
+      type InstrItem = { title: string; bullets: string[] };
+      const items: InstrItem[] = [];
+      let current: InstrItem | null = null;
+
+      const isHeaderLine = (line: string) => {
+        // Lines ending with ":" are clearly headers
+        if (/:$/.test(line)) return true;
+        // If it ends with sentence punctuation, treat as detail, not header
+        if (/[.?!]\s*$/.test(line)) return false;
+        // Short, non-sentence lines are likely section labels (e.g., "Incident Overview")
+        return true;
+      };
+
+      for (const line of lines) {
+        if (isHeaderLine(line)) {
+          if (current) items.push(current);
+          current = { title: line.replace(/:$/, "").trim(), bullets: [] };
+        } else if (current) {
+          current.bullets.push(line);
+        } else {
+          // No header yet, treat as a bullet under an implicit item
+          current = { title: "", bullets: [line] };
+        }
+      }
+      if (current) items.push(current);
+
       let listBlock = "";
-      if (lines.length) {
-        const items = lines
-          .map((line) => {
-            const liHtml = markdownToHtml(line).trim();
-            const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
-            return `<li>${inner}</li>`;
+      if (items.length) {
+        const itemHtml = items
+          .map((item) => {
+            const titleHtml = item.title
+              ? markdownToHtml(`**${item.title}**`).trim()
+              : "";
+            const cleanTitle = titleHtml
+              .replace(/^<p>/i, "")
+              .replace(/<\/p>$/i, "");
+
+            let bulletsHtml = "";
+            if (item.bullets.length) {
+              const bullets = item.bullets
+                .map((b) => {
+                  const liHtml = markdownToHtml(b).trim();
+                  const inner = liHtml
+                    .replace(/^<p>/i, "")
+                    .replace(/<\/p>$/i, "");
+                  return `<li>${inner}</li>`;
+                })
+                .join("");
+              bulletsHtml = `<ul>${bullets}</ul>`;
+            }
+
+            if (cleanTitle && bulletsHtml) {
+              return `<li>${cleanTitle}<br />${bulletsHtml}</li>`;
+            }
+            if (cleanTitle) {
+              return `<li>${cleanTitle}</li>`;
+            }
+            return bulletsHtml ? `<li>${bulletsHtml}</li>` : "";
           })
           .join("");
-        listBlock = `<ul>${items}</ul>`;
+
+        listBlock = `<ol>${itemHtml}</ol>`;
       }
 
       instructionsHtml = `${introBlock}${listBlock ? "\n" + listBlock : ""}`;
