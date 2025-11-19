@@ -8,7 +8,7 @@ export interface PageFormData {
   overwritePageId?: string;
   moduleId?: string;
   canvasToken?: string;
-  moduleNumber?: string; // selected module number (1–16)
+  moduleNumber?: string; // NEW: module number for banner
 }
 
 interface CanvasModule {
@@ -40,7 +40,7 @@ export default function PageForm({
     overwritePageId: undefined,
     moduleId: undefined,
     canvasToken: "",
-    moduleNumber: undefined,
+    moduleNumber: "",
   });
 
   const [canvasPages, setCanvasPages] = useState<any[]>([]);
@@ -57,9 +57,11 @@ export default function PageForm({
 
   // Fetch all Canvas pages for the dropdown, using courseId from props
   const fetchPages = async (cid?: string) => {
+    const effectiveCourseId = cid || courseId;
+
     setDebugInfo(
       `fetchPages called with courseId=${
-        cid || courseId
+        effectiveCourseId || "[none]"
       }, token=${formData.canvasToken ? "[provided]" : "[none]"}`
     );
     setIsLoadingPages(true);
@@ -67,18 +69,16 @@ export default function PageForm({
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_CANVAS_BASE_URL;
-      const realCourseId = cid || courseId;
-
-      if (!baseUrl || !realCourseId) {
+      if (!baseUrl || !effectiveCourseId) {
         setPagesError("Enter a Course ID to load pages.");
-        setIsLoadingPages(false);
         setCanvasPages([]);
+        setIsLoadingPages(false);
         return;
       }
 
       let url = `/api/pages?canvasBaseUrl=${encodeURIComponent(
         baseUrl
-      )}&courseId=${encodeURIComponent(realCourseId)}`;
+      )}&courseId=${encodeURIComponent(effectiveCourseId)}`;
 
       if (formData.canvasToken && formData.canvasToken.trim()) {
         url += `&canvasToken=${encodeURIComponent(
@@ -105,6 +105,7 @@ export default function PageForm({
         setCanvasPages(data.data);
       } else {
         setPagesError(data.error || "Failed to load pages.");
+        setCanvasPages([]);
       }
     } catch (err) {
       setPagesError(
@@ -112,15 +113,10 @@ export default function PageForm({
           (err instanceof Error ? err.message : String(err))
       );
       setCanvasPages([]);
-      setDebugInfo(
-        (prev) =>
-          prev +
-          `\nUnexpected error: ${
-            err instanceof Error ? err.message : String(err)
-          }`
-      );
+      setDebugInfo((prev) => prev + `\nUnexpected error: ${err}`);
+    } finally {
+      setIsLoadingPages(false);
     }
-    setIsLoadingPages(false);
   };
 
   // Watch for courseId or canvasToken changes and fetch pages
@@ -136,12 +132,11 @@ export default function PageForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // Build final page content with optional WFU SPS module banner
     let finalRawContent = formData.rawContent;
 
+    // If module number is provided, prepend the WFU SPS module banner
     if (formData.moduleNumber) {
       const moduleNumber = formData.moduleNumber;
-
       const bannerHtml = `<div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
             <div class="WFU-SubpageHeader WFU-SubpageHeroModule${moduleNumber}">&nbsp;
@@ -150,7 +145,7 @@ export default function PageForm({
         </div>
     </div>`;
 
-      // Prepend banner above whatever the user has entered (course title, etc.)
+      // Prepend the banner so it appears above the course title/content
       finalRawContent = `${bannerHtml}\n${formData.rawContent}`;
     }
 
@@ -208,8 +203,8 @@ export default function PageForm({
             ))}
           </select>
           <p className="text-xs text-gray-500 mt-1">
-            This will add the correct WFU SPS module banner above your page
-            content.
+            This will add the correct WFU SPS module banner above your course
+            title in the page content.
           </p>
         </div>
 
@@ -232,7 +227,7 @@ export default function PageForm({
           />
         </div>
 
-        {/* Canvas API token + overwrite page */}
+        {/* Canvas token + overwrite page */}
         <div className="space-y-2">
           <label
             htmlFor="canvasToken"
@@ -261,10 +256,7 @@ export default function PageForm({
               id="overwritePageId"
               value={formData.overwritePageId || ""}
               onChange={(e) =>
-                handleChange(
-                  "overwritePageId",
-                  e.target.value || undefined
-                )
+                handleChange("overwritePageId", e.target.value || undefined)
               }
               disabled={isLoadingPages}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -295,7 +287,7 @@ export default function PageForm({
           )}
         </div>
 
-        {/* Canvas Module selection */}
+        {/* Canvas module selection */}
         <div className="space-y-2">
           <label
             htmlFor="moduleId"
@@ -338,7 +330,7 @@ export default function PageForm({
             disabled={isLoading}
             className="w-full px-4 py-2 bg-canvas-blue text-white rounded-md disabled:opacity-50"
           >
-            {isLoading ? `Creating Page...` : `Create Page`}
+            {isLoading ? "Creating Page..." : "Create Page"}
           </button>
         </div>
       </form>
