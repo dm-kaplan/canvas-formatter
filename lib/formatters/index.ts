@@ -862,7 +862,6 @@ export function formatWFUAssignment(
       const items = skills
         .map((line) => {
           const liHtml = markdownToHtml(line).trim();
-          // strip outer <p> wrappers if present
           const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
           return `<li>${inner}</li>`;
         })
@@ -871,13 +870,46 @@ export function formatWFUAssignment(
     }
   }
 
-  // --- SCENARIO, TASK, INSTRUCTIONS, CRITERIA via markdown ---
+  // --- SCENARIO & TASK via markdown ---
   const scenarioHtml = scenarioText ? markdownToHtml(scenarioText) : "";
   const taskHtml = taskText ? markdownToHtml(taskText) : "";
-  const instructionsHtml = combinedInstructionsText
-    ? markdownToHtml(combinedInstructionsText)
-    : "";
-  const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
+
+  // --- INSTRUCTIONS ---
+  let instructionsHtml = "";
+  if (combinedInstructionsText) {
+    // If author already used markdown list syntax, let markdown render it as-is
+    const hasListSyntax = /^\s*(?:\d+\.|-|\*)\s+/m.test(combinedInstructionsText);
+
+    if (hasListSyntax) {
+      instructionsHtml = markdownToHtml(combinedInstructionsText);
+    } else {
+      // Otherwise: first line is an intro <p>, remaining lines become a bullet list
+      const lines = combinedInstructionsText
+        .split(/\n+/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      const introLine = lines.shift() || "";
+      let introBlock = "";
+      if (introLine) {
+        introBlock = markdownToHtml(introLine);
+      }
+
+      let listBlock = "";
+      if (lines.length) {
+        const items = lines
+          .map((line) => {
+            const liHtml = markdownToHtml(line).trim();
+            const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
+            return `<li>${inner}</li>`;
+          })
+          .join("");
+        listBlock = `<ul>${items}</ul>`;
+      }
+
+      instructionsHtml = `${introBlock}${listBlock ? "\n" + listBlock : ""}`;
+    }
+  }
 
   // --- SUBMISSION INSTRUCTIONS as <ul> ---
   let submissionHtml = "";
@@ -899,7 +931,27 @@ export function formatWFUAssignment(
     }
   }
 
-  // --- Final HTML matching the desired structure ---
+  // --- CRITERIA as a bullet list ---
+  let criteriaHtml = "";
+  if (criteriaText) {
+    const lines = criteriaText
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length) {
+      const items = lines
+        .map((line) => {
+          const liHtml = markdownToHtml(line).trim();
+          const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
+          return `<li>${inner}</li>`;
+        })
+        .join("");
+      criteriaHtml = `<ul>${items}</ul>`;
+    }
+  }
+
+  // --- Final HTML matching the desired assignment structure ---
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <h2>${title}</h2>
     ${
