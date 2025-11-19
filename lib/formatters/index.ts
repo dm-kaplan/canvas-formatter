@@ -733,16 +733,16 @@ export function formatWFUAssignment(
   };
 
   const rePurpose = /Purpose\s*:/i;
-  const reTask = /Task\s*:/i;
   const reScenario = /Scenario\s*:/i;
+  const reTask = /Task\s*:/i;
   const reInstructions = /Instructions\s*:/i;
   const reFormatting = /Formatting Requirements\s*:/i;
   const reSubmission = /Submission Instructions\s*:/i;
   const reCriteria = /Criteria for Success[^:]*:/i;
 
   const purposePos = findLabel(rePurpose);
-  const taskPos = findLabel(reTask);
   const scenarioPos = findLabel(reScenario);
+  const taskPos = findLabel(reTask);
   const instructionsPos = findLabel(reInstructions);
   const formattingPos = findLabel(reFormatting);
   const submissionPos = findLabel(reSubmission);
@@ -760,8 +760,8 @@ export function formatWFUAssignment(
   if (purposePos) {
     const start = purposePos[1];
     const end = earliest(
-      taskPos ? taskPos[0] : null,
       scenarioPos ? scenarioPos[0] : null,
+      taskPos ? taskPos[0] : null,
       instructionsPos ? instructionsPos[0] : null,
       formattingPos ? formattingPos[0] : null,
       submissionPos ? submissionPos[0] : null,
@@ -770,31 +770,31 @@ export function formatWFUAssignment(
     purposeText = text.slice(start, end).trim();
   }
 
-  // TASK
-  let taskText = "";
-  if (taskPos) {
-    const start = taskPos[1];
-    const end = earliest(
-      scenarioPos ? scenarioPos[0] : null,
-      instructionsPos ? instructionsPos[0] : null,
-      formattingPos ? formattingPos[0] : null,
-      submissionPos ? submissionPos[0] : null,
-      criteriaPos ? criteriaPos[0] : null
-    );
-    taskText = text.slice(start, end).trim();
-  }
-
   // SCENARIO
   let scenarioText = "";
   if (scenarioPos) {
     const start = scenarioPos[1];
     const end = earliest(
+      taskPos ? taskPos[0] : null,
       instructionsPos ? instructionsPos[0] : null,
       formattingPos ? formattingPos[0] : null,
       submissionPos ? submissionPos[0] : null,
       criteriaPos ? criteriaPos[0] : null
     );
     scenarioText = text.slice(start, end).trim();
+  }
+
+  // TASK
+  let taskText = "";
+  if (taskPos) {
+    const start = taskPos[1];
+    const end = earliest(
+      instructionsPos ? instructionsPos[0] : null,
+      formattingPos ? formattingPos[0] : null,
+      submissionPos ? submissionPos[0] : null,
+      criteriaPos ? criteriaPos[0] : null
+    );
+    taskText = text.slice(start, end).trim();
   }
 
   // INSTRUCTIONS (we may merge Formatting Requirements into this)
@@ -841,66 +841,105 @@ export function formatWFUAssignment(
     criteriaText = criteriaText.replace(/^\(?Grading Rubric\)?:?\s*/i, "").trim();
   }
 
-  // Convert sections via markdown → HTML
-  const purposeHtml = purposeText ? markdownToHtml(purposeText) : "";
-  const taskHtml = taskText ? markdownToHtml(taskText) : "";
+  // --- PURPOSE HTML (intro <p> + <ul> of skills) ---
+  let purposeIntroHtml = "";
+  let purposeListHtml = "";
+
+  if (purposeText) {
+    const lines = purposeText
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    const intro = lines.shift() || "";
+    const skills = lines;
+
+    if (intro) {
+      purposeIntroHtml = markdownToHtml(intro);
+    }
+
+    if (skills.length) {
+      const items = skills
+        .map((line) => {
+          const liHtml = markdownToHtml(line).trim();
+          // strip outer <p> wrappers if present
+          const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
+          return `<li>${inner}</li>`;
+        })
+        .join("");
+      purposeListHtml = `<ul>${items}</ul>`;
+    }
+  }
+
+  // --- SCENARIO, TASK, INSTRUCTIONS, CRITERIA via markdown ---
   const scenarioHtml = scenarioText ? markdownToHtml(scenarioText) : "";
+  const taskHtml = taskText ? markdownToHtml(taskText) : "";
   const instructionsHtml = combinedInstructionsText
     ? markdownToHtml(combinedInstructionsText)
     : "";
-  const submissionHtml = submissionText ? markdownToHtml(submissionText) : "";
   const criteriaHtml = criteriaText ? markdownToHtml(criteriaText) : "";
 
+  // --- SUBMISSION INSTRUCTIONS as <ul> ---
+  let submissionHtml = "";
+  if (submissionText) {
+    const lines = submissionText
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length) {
+      const items = lines
+        .map((line) => {
+          const liHtml = markdownToHtml(line).trim();
+          const inner = liHtml.replace(/^<p>/i, "").replace(/<\/p>$/i, "");
+          return `<li>${inner}</li>`;
+        })
+        .join("");
+      submissionHtml = `<ul>${items}</ul>`;
+    }
+  }
+
+  // --- Final HTML matching the desired structure ---
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-    <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
-          <h1 class="WFU-SubpageHeader">${title}</h1>
-          ${
-            purposeHtml
-              ? `<h3>Purpose:</h3>
-          ${purposeHtml}`
-              : ""
-          }
-          ${
-            scenarioHtml
-              ? `<h3>Scenario:</h3>
-          ${scenarioHtml}`
-              : ""
-          }
-          ${
-            taskHtml
-              ? `<h3>Task:</h3>
-          ${taskHtml}`
-              : ""
-          }
-          ${
-            instructionsHtml
-              ? `<h3>Instructions:</h3>
-          ${instructionsHtml}`
-              : ""
-          }
-          ${
-            submissionHtml
-              ? `<h3>Submission Instructions:</h3>
-          ${submissionHtml}`
-              : ""
-          }
-          ${
-            criteriaHtml
-              ? `<h3>Criteria for Success (Grading Rubric):</h3>
-          ${criteriaHtml}`
-              : ""
-          }
-        </div>
-      </div>
-    </div>
-    <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-      </div>
-    </div>
-  </div>`;
+    <h2>${title}</h2>
+    ${
+      purposeIntroHtml || purposeListHtml
+        ? `<h3>Purpose:</h3>
+    ${purposeIntroHtml}
+    ${purposeListHtml}`
+        : ""
+    }
+    ${
+      scenarioHtml
+        ? `<h3>Scenario:</h3>
+    ${scenarioHtml}`
+        : ""
+    }
+    ${
+      taskHtml
+        ? `<h3>Task:</h3>
+    ${taskHtml}`
+        : ""
+    }
+    ${
+      instructionsHtml
+        ? `<h3>Instructions:</h3>
+    ${instructionsHtml}`
+        : ""
+    }
+    ${
+      submissionHtml
+        ? `<h3>Submission Instructions:</h3>
+    ${submissionHtml}`
+        : ""
+    }
+    ${
+      criteriaHtml
+        ? `<h3>Criteria for Success (Grading Rubric):</h3>
+    ${criteriaHtml}`
+        : ""
+    }
+</div>`;
 
   return postProcessHtml(html, context);
 }
