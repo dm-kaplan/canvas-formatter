@@ -770,12 +770,11 @@ export function formatWFUAssignment(
     purposeText = text.slice(start, end).trim();
   }
 
-  // SCENARIO
+    // SCENARIO
   let scenarioText = "";
   if (scenarioPos) {
     const start = scenarioPos[1];
     const end = earliest(
-      taskPos ? taskPos[0] : null,
       instructionsPos ? instructionsPos[0] : null,
       formattingPos ? formattingPos[0] : null,
       submissionPos ? submissionPos[0] : null,
@@ -784,11 +783,12 @@ export function formatWFUAssignment(
     scenarioText = text.slice(start, end).trim();
   }
 
-  // TASK
+    // TASK
   let taskText = "";
   if (taskPos) {
     const start = taskPos[1];
     const end = earliest(
+      scenarioPos ? scenarioPos[0] : null,
       instructionsPos ? instructionsPos[0] : null,
       formattingPos ? formattingPos[0] : null,
       submissionPos ? submissionPos[0] : null,
