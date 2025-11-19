@@ -8,6 +8,7 @@ export interface PageFormData {
   overwritePageId?: string;
   moduleId?: string;
   canvasToken?: string;
+  moduleNumber?: string; // NEW: selected module number (1–16)
 }
 
 interface CanvasModule {
@@ -15,7 +16,6 @@ interface CanvasModule {
   name: string;
   position: number;
 }
-
 
 interface PageFormProps {
   onSubmit: (d: PageFormData) => Promise<void>;
@@ -26,14 +26,23 @@ interface PageFormProps {
   courseId?: string;
 }
 
-export default function PageForm({ onSubmit, isLoading = false, modules = [], isLoadingModules = false, onRefreshModules, courseId }: PageFormProps) {
+export default function PageForm({
+  onSubmit,
+  isLoading = false,
+  modules = [],
+  isLoadingModules = false,
+  onRefreshModules,
+  courseId,
+}: PageFormProps) {
   const [formData, setFormData] = useState<PageFormData>({
     title: "",
     rawContent: "",
     overwritePageId: undefined,
     moduleId: undefined,
     canvasToken: "",
+    moduleNumber: undefined,
   });
+
   // ...existing code...
   const [canvasPages, setCanvasPages] = useState<any[]>([]);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
@@ -42,30 +51,40 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
 
   // Fetch all Canvas pages for the dropdown, using courseId from form
   const fetchPages = async (cid?: string) => {
-    setDebugInfo(`fetchPages called with courseId=${cid || courseId}, token=${formData.canvasToken ? '[provided]' : '[none]'}`);
+    setDebugInfo(
+      `fetchPages called with courseId=${
+        cid || courseId
+      }, token=${formData.canvasToken ? "[provided]" : "[none]"}`
+    );
     setIsLoadingPages(true);
     setPagesError(null);
-  try {
+    try {
       const baseUrl = process.env.NEXT_PUBLIC_CANVAS_BASE_URL;
       const realCourseId = cid || courseId;
       if (!baseUrl || !realCourseId) {
-        setPagesError('Enter a Course ID to load pages.');
+        setPagesError("Enter a Course ID to load pages.");
         setIsLoadingPages(false);
         setCanvasPages([]);
         return;
       }
-      let url = `/api/pages?canvasBaseUrl=${encodeURIComponent(baseUrl)}&courseId=${encodeURIComponent(realCourseId)}`;
+      let url = `/api/pages?canvasBaseUrl=${encodeURIComponent(
+        baseUrl
+      )}&courseId=${encodeURIComponent(realCourseId)}`;
       if (formData.canvasToken && formData.canvasToken.trim()) {
-        url += `&canvasToken=${encodeURIComponent(formData.canvasToken.trim())}`;
+        url += `&canvasToken=${encodeURIComponent(
+          formData.canvasToken.trim()
+        )}`;
       }
-  let data: any;
+      let data: any;
       try {
         const res = await fetch(url);
         data = await res.json();
-        setDebugInfo(prev => prev + `\nAPI response: ${JSON.stringify(data)}`);
+        setDebugInfo((prev) => prev + `\nAPI response: ${JSON.stringify(data)}`);
       } catch (networkErr) {
-        setPagesError('Network error: Could not reach the server. Is the backend running?');
-        setDebugInfo(prev => prev + `\nNetwork error: ${networkErr}`);
+        setPagesError(
+          "Network error: Could not reach the server. Is the backend running?"
+        );
+        setDebugInfo((prev) => prev + `\nNetwork error: ${networkErr}`);
         setCanvasPages([]);
         setIsLoadingPages(false);
         return;
@@ -73,12 +92,21 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
       if (data.success) {
         setCanvasPages(data.data);
       } else {
-        setPagesError(data.error || 'Failed to load pages.');
+        setPagesError(data.error || "Failed to load pages.");
       }
     } catch (err) {
-      setPagesError('Unexpected error: ' + (err instanceof Error ? err.message : String(err)));
-  setCanvasPages([]);
-  setDebugInfo(prev => prev + `\nUnexpected error: ${err instanceof Error ? err.message : String(err)}`);
+      setPagesError(
+        "Unexpected error: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+      setCanvasPages([]);
+      setDebugInfo(
+        (prev) =>
+          prev +
+          `\nUnexpected error: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+      );
     }
     setIsLoadingPages(false);
   };
@@ -98,7 +126,24 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await onSubmit({ ...formData });
+
+    // Build final page content with optional WFU SPS module banner
+    let finalRawContent = formData.rawContent;
+
+    if (formData.moduleNumber) {
+      const bannerHtml = `<div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader WFU-SubpageHeroModule${formData.moduleNumber}">&nbsp;
+                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
+        </div>
+    </div>`;
+
+      // Prepend banner above whatever the user has entered (course title, etc.)
+      finalRawContent = `${bannerHtml}\n${formData.rawContent}`;
+    }
+
+    await onSubmit({ ...formData, rawContent: finalRawContent });
   };
 
   // ...existing code...
@@ -110,60 +155,110 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Page Title *
           </label>
           <input
             id="title"
             type="text"
             value={formData.title}
-            onChange={e => handleChange("title", e.target.value)}
+            onChange={(e) => handleChange("title", e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
             placeholder="Page Title"
           />
         </div>
+
+        {/* NEW: Module Number dropdown (1–16) */}
         <div>
-          <label htmlFor="rawContent" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="moduleNumber"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Module Number *
+          </label>
+          <select
+            id="moduleNumber"
+            value={formData.moduleNumber || ""}
+            onChange={(e) => handleChange("moduleNumber", e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
+          >
+            <option value="">Select Module</option>
+            {Array.from({ length: 16 }, (_, i) => (
+              <option key={i + 1} value={String(i + 1)}>
+                Module {i + 1}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            This will add the correct WFU SPS module banner above your page
+            content.
+          </p>
+        </div>
+
+        <div>
+          <label
+            htmlFor="rawContent"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Page Content *
           </label>
           <textarea
             id="rawContent"
             value={formData.rawContent}
-            onChange={e => handleChange("rawContent", e.target.value)}
+            onChange={(e) => handleChange("rawContent", e.target.value)}
             rows={10}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
             placeholder="Enter page content..."
           />
         </div>
+
         <div className="space-y-2">
-          <label htmlFor="canvasToken" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="canvasToken"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Canvas API Token (optional, for troubleshooting)
           </label>
           <input
             id="canvasToken"
             type="text"
-            value={formData.canvasToken || ''}
-            onChange={e => handleChange("canvasToken", e.target.value)}
+            value={formData.canvasToken || ""}
+            onChange={(e) => handleChange("canvasToken", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="Paste your Canvas API token here (optional)"
             autoComplete="off"
           />
-          <label htmlFor="overwritePageId" className="block text-sm font-medium text-gray-700 mb-1">
+
+          <label
+            htmlFor="overwritePageId"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Overwrite existing page (optional)
           </label>
           <div className="flex items-center gap-2">
             <select
               id="overwritePageId"
-              value={formData.overwritePageId || ''}
-              onChange={e => handleChange("overwritePageId", e.target.value || undefined)}
+              value={formData.overwritePageId || ""}
+              onChange={(e) =>
+                handleChange(
+                  "overwritePageId",
+                  e.target.value || undefined
+                )
+              }
               disabled={isLoadingPages}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
               <option value="">-- None --</option>
               {canvasPages.map((p) => (
-                <option key={p.url} value={p.url}>{p.title}</option>
+                <option key={p.url} value={p.url}>
+                  {p.title}
+                </option>
               ))}
             </select>
             <button
@@ -172,37 +267,55 @@ export default function PageForm({ onSubmit, isLoading = false, modules = [], is
               disabled={isLoadingPages || !courseId}
               className="text-xs text-canvas-blue hover:underline disabled:opacity-50"
             >
-              {isLoadingPages ? 'Refreshing...' : 'Refresh'}
+              {isLoadingPages ? "Refreshing..." : "Refresh"}
             </button>
           </div>
-          {pagesError && <div className="text-xs text-red-500 mt-1">{pagesError}</div>}
+          {pagesError && (
+            <div className="text-xs text-red-500 mt-1">{pagesError}</div>
+          )}
           {debugInfo && (
-            <pre className="text-xs text-gray-400 bg-gray-100 rounded p-2 mt-1 max-h-40 overflow-auto">{debugInfo}</pre>
+            <pre className="text-xs text-gray-400 bg-gray-100 rounded p-2 mt-1 max-h-40 overflow-auto">
+              {debugInfo}
+            </pre>
           )}
         </div>
+
         {/* Removed 'Publish immediately' checkbox */}
         <div className="space-y-2">
-          <label htmlFor="moduleId" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="moduleId"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Canvas Module (Optional)
           </label>
           <select
             id="moduleId"
-            value={formData.moduleId || ''}
-            onChange={e => handleChange("moduleId", e.target.value || undefined)}
+            value={formData.moduleId || ""}
+            onChange={(e) =>
+              handleChange("moduleId", e.target.value || undefined)
+            }
             disabled={isLoadingModules}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           >
             <option value="">-- Choose --</option>
             {modules.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
             ))}
           </select>
           {onRefreshModules && (
-            <button type="button" onClick={onRefreshModules} disabled={isLoadingModules} className="text-xs text-canvas-blue hover:underline disabled:opacity-50 ml-2">
-              {isLoadingModules ? 'Refreshing...' : 'Refresh'}
+            <button
+              type="button"
+              onClick={onRefreshModules}
+              disabled={isLoadingModules}
+              className="text-xs text-canvas-blue hover:underline disabled:opacity-50 ml-2"
+            >
+              {isLoadingModules ? "Refreshing..." : "Refresh"}
             </button>
           )}
         </div>
+
         <div className="pt-2">
           <button
             type="submit"
