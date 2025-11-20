@@ -324,9 +324,56 @@ export function formatWFUCourseWelcome(
   const courseCode = context.courseCode || "";
   const htmlContent = markdownToHtml(content);
 
-  const introHeading = courseCode
-    ? `Introduction to ${courseCode} ${courseTitle}`
-    : `Introduction to ${courseTitle}`;
+  const introHeading =
+    courseCode && courseCode.trim().length > 0
+      ? `Introduction to ${courseCode} ${courseTitle}`
+      : `Introduction to ${courseTitle}`;
+
+  const modulesIntro = `
+                <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
+                <ul>
+                    <li>Getting Started&nbsp;</li>
+                    <ul>
+                        <li>An introduction to the course instructor&nbsp;</li>
+                        <li>An overview of assessments</li>
+                        <li>Other important information about the course&nbsp;&nbsp;</li>
+                    </ul>
+                    <li>Tools for Success</li>
+                    <ul>
+                        <li>Resources to help improve your online education experience, including technical support, Canvas navigation tips, Zoom support, and more</li>
+                    </ul>
+                    <li>Opportunities for Engagement</li>
+                    <ul>
+                        <li>Ways to engage with your peers, instructors, and the university</li>
+                    </ul>
+                </ul>`;
+
+  const { courseId, moduleTitles } = context;
+
+  let modulesHeadingHtml = "";
+  let modulesLinksHtml = "";
+
+  if (Array.isArray(moduleTitles) && moduleTitles.length > 0) {
+    const baseModulesUrl =
+      courseId && courseId.trim().length > 0
+        ? `https://wakeforest.instructure.com/courses/${courseId}/modules`
+        : "";
+
+    // "Module" heading (linked when courseId is available)
+    modulesHeadingHtml =
+      baseModulesUrl.length > 0
+        ? `<h3><a title="Getting Started" href="${baseModulesUrl}" data-api-endpoint="${baseModulesUrl}" data-api-returntype="Module">Module</a></h3>`
+        : "<h3>Module</h3>";
+
+    // Each item in moduleTitles will be rendered on its own line.
+    // If you pass full <a>...</a> strings as titles, they'll be clickable.
+    modulesLinksHtml = moduleTitles
+      .map(
+        (title) =>
+          `<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">${title}</div>`
+      )
+      .join("");
+  }
 
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
@@ -335,13 +382,16 @@ export function formatWFUCourseWelcome(
                 <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
             </div>
         </div>
-    </div>
-    <div class="grid-row">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <p class="WFU-SubpageHeader">${courseTitle}</p>
-            <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
-            <h3>${introHeading}</h3>
-            ${htmlContent}
+        <div class="grid-row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <p class="WFU-SubpageHeader">${courseTitle}</p>
+                <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+                <h3>${introHeading}</h3>
+                ${htmlContent}
+                ${modulesIntro}
+                ${modulesHeadingHtml}
+            </div>
+            ${modulesLinksHtml}
         </div>
     </div>
 </div>
