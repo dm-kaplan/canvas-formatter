@@ -324,23 +324,29 @@ export function formatWFUCourseWelcome(
   const courseCode = context.courseCode || "";
   const htmlContent = markdownToHtml(content);
 
+  const introHeading = courseCode
+    ? `Introduction to ${courseCode} ${courseTitle}`
+    : `Introduction to ${courseTitle}`;
+
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
-  <div class="grid-row">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <div class="WFU-Container-DarkText" style="padding: 10px 15px 10px 15px;">
-        <h1 class="WFU-SubpageHeader">${courseTitle}${
-    courseCode ? ` (${courseCode})` : ""
-  }</h1>
-        <h2 class="WFU-SubpageSubheader">Welcome to the Course</h2>
-        ${htmlContent}
-      </div>
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="grid-row">
-    <div class="col-xs-12">
-      <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseTitle}</p>
+            <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+            <h3>${introHeading}</h3>
+            ${htmlContent}
+        </div>
     </div>
-  </div>
+</div>
+<div class="grid-row">
+    <div class="col-xs-12 WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</div>
 </div>`;
 
   return postProcessHtml(html, context);
