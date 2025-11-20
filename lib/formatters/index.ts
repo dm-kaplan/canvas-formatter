@@ -137,6 +137,7 @@ export function wrapInWFUContainer(html: string): string {
 
 /**
  * WFU SPS Syllabus summary / header block
+ * Renders a simple syllabus summary header that matches WFU SPS design.
  */
 export function formatWFUCourseSyllabus(
   content: string,
@@ -150,41 +151,39 @@ export function formatWFUCourseSyllabus(
   const syllabusFileName = context.syllabusFileName || "Syllabus.docx";
   const office =
     context.office ||
-    'By appointment via Zoom <a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
+    'By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
 
-  let credentials = instructorCredentials.trim();
-  if (credentials.toLowerCase().includes("adjunct professor of practice")) {
-    credentials = credentials
-      .replace(/,?\s*adjunct professor of practice\s*/i, "")
-      .trim();
-  }
+  const hasCredentials = instructorCredentials.trim().length > 0;
+  const instructorLine = `&nbsp;${instructorName}${
+    hasCredentials ? ", " + instructorCredentials.trim() : ""
+  }`;
+
+  // Optional: if you pass syllabusFileUrl in context, we’ll link the file name
+  const syllabusLink =
+    context.syllabusFileUrl && String(context.syllabusFileUrl).trim().length > 0
+      ? `<a href="${context.syllabusFileUrl}" target="_blank" rel="noopener">${syllabusFileName}</a>`
+      : syllabusFileName;
 
   const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
-        <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
-          <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+            <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
+                <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
+            </div>
         </div>
-      </div>
     </div>
     <div class="grid-row">
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <div class="WFU-Container-DarkText" style="padding: 0px 15px 0px 15px;">
-          <h1 class="WFU-SubpageHeader">${courseName} (${context.courseCode || ""})</h1>
-          <h2 class="WFU-SubpageSubheader">Course Syllabus</h2>
-          <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span>${instructorName}, ${credentials}</strong></p>
-          <p><strong>Email:&nbsp;</strong><a href="mailto:${instructorEmail}">${instructorEmail}</a></p>
-          <p><strong>Office Hours:&nbsp;</strong>${office}</p>
-          <p><strong>Course Syllabus:&nbsp;</strong>${syllabusFileName}</p>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseName}</p>
+            <h2 class="WFU-SubpageSubheader">Syllabus</h2>
+            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>${instructorLine}<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong><a href="mailto:${instructorEmail}">${instructorEmail}</a><strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>${office}<strong></strong></p>
+            <p><strong>Course Syllabus:&nbsp;</strong>${syllabusLink}</p>
         </div>
-      </div>
     </div>
     <div class="grid-row">
-      <div class="col-xs-12">
-        <footer class="WFU-footer">This material is owned by Wake Forest University School of Professional Studies and is protected by U.S. copyright laws. All Rights Reserved.</footer>
-      </div>
+        <div class="col-xs-12">&nbsp;</div>
     </div>
-  </div>`;
+</div>`;
 
   return postProcessHtml(html, context);
 }
