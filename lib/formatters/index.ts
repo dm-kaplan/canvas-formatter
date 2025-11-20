@@ -348,41 +348,19 @@ export function formatWFUCourseWelcome(
                     </ul>
                 </ul>`;
 
-  const courseId = (context.courseId || "").trim();
-  const gettingStartedModuleId = ((context as any).gettingStartedModuleId ||
-    "") as string;
-
   const moduleTitles: string[] = Array.isArray(context.moduleTitles)
     ? context.moduleTitles
     : [];
 
-  const modulePageIds: string[] = Array.isArray((context as any).modulePageIds)
-    ? (context as any).modulePageIds
-    : [];
+  // Simple heading — no link, as requested
+  const modulesHeadingHtml = "<h3>Module</h3>";
 
-  // Build the "Module" heading link
-  let modulesHeadingHtml = "";
-  if (courseId && gettingStartedModuleId) {
-    const href = `https://wakeforest.instructure.com/courses/${courseId}/modules/${gettingStartedModuleId}`;
-    const apiEndpoint = `https://wakeforest.instructure.com/api/v1/courses/${courseId}/modules/${gettingStartedModuleId}`;
-    modulesHeadingHtml = `<h3><a title="Getting Started" href="${href}" data-api-endpoint="${apiEndpoint}" data-api-returntype="Module">Module</a></h3>`;
-  } else {
-    modulesHeadingHtml = "<h3>Module</h3>";
-  }
-
-  // Build module link rows
-  const modulesLinksHtml = moduleTitles
+  // Render:
+  // Module 1: Foundations...
+  // Module 2: Incident Detection...
+  const modulesLinesHtml = moduleTitles
     .map((title, index) => {
       const moduleNumber = index + 1;
-      const pageId = modulePageIds[index];
-
-      if (courseId && pageId) {
-        const href = `https://wakeforest.instructure.com/courses/${courseId}/modules/${pageId}?wrap=1`;
-        const apiEndpoint = `https://wakeforest.instructure.com/api/v1/courses/${courseId}/modules/${pageId}`;
-        return `<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><a title="Module ${moduleNumber}" href="${href}" data-api-endpoint="${apiEndpoint}" data-api-returntype="Module">Module ${moduleNumber}: ${title}</a></div>`;
-      }
-
-      // Fallback if no page ID: plain text
       return `<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">Module ${moduleNumber}: ${title}</div>`;
     })
     .join("");
@@ -403,7 +381,7 @@ export function formatWFUCourseWelcome(
                 ${modulesIntro}
                 ${modulesHeadingHtml}
             </div>
-            ${modulesLinksHtml}
+            ${modulesLinesHtml}
         </div>
     </div>
 </div>
