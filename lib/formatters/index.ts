@@ -322,6 +322,7 @@ export function formatWFUCourseWelcome(
 ): string {
   const courseTitle = context.courseName || context.title || "Course Title";
   const courseCode = context.courseCode || "";
+
   const htmlContent = markdownToHtml(content);
 
   const introHeading =
@@ -329,6 +330,32 @@ export function formatWFUCourseWelcome(
       ? `Introduction to ${courseCode} ${courseTitle}`
       : `Introduction to ${courseTitle}`;
 
+  // Parse module list provided in this pasted format:
+  // "Module 1: Title"
+  const rawModuleLines = Array.isArray(context.moduleTitles)
+    ? context.moduleTitles
+    : [];
+
+  const parsedModules = rawModuleLines
+    .map((line) => {
+      const match = line.match(/^Module\s+(\d+)\s*:\s*(.+)$/i);
+      if (!match) return null;
+      return {
+        number: parseInt(match[1], 10),
+        title: match[2].trim(),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.number - b.number);
+
+  const modulesLinesHtml = parsedModules
+    .map(
+      (m) =>
+        `<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">Module ${m.number}: ${m.title}</div>`
+    )
+    .join("");
+
+  // Standard Module navigation intro
   const modulesIntro = `
                 <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
                 <ul>
@@ -346,50 +373,37 @@ export function formatWFUCourseWelcome(
                     <ul>
                         <li>Ways to engage with your peers, instructors, and the university</li>
                     </ul>
-                </ul>`;
+                </ul>
+                <h3>Module</h3>`;
 
-  const moduleTitles: string[] = Array.isArray(context.moduleTitles)
-    ? context.moduleTitles
-    : [];
-
-  // Simple heading — no link, as requested
-  const modulesHeadingHtml = "<h3>Module</h3>";
-
-  // Render:
-  // Module 1: Foundations...
-  // Module 2: Incident Detection...
-  const modulesLinesHtml = moduleTitles
-    .map((title, index) => {
-      const moduleNumber = index + 1;
-      return `<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">Module ${moduleNumber}: ${title}</div>`;
-    })
-    .join("");
-
-  const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+  const finalHtml = `
+<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
             <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
                 <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
             </div>
         </div>
-        <div class="grid-row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <p class="WFU-SubpageHeader">${courseTitle}</p>
-                <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
-                <h3>${introHeading}</h3>
-                ${htmlContent}
-                ${modulesIntro}
-                ${modulesHeadingHtml}
-            </div>
-            ${modulesLinesHtml}
+    </div>
+
+    <div class="grid-row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <p class="WFU-SubpageHeader">${courseTitle}</p>
+            <h2 class="WFU-SubpageSubheader">Course Welcome</h2>
+            <h3>${introHeading}</h3>
+            ${htmlContent}
+            ${modulesIntro}
         </div>
+
+        ${modulesLinesHtml}
     </div>
 </div>
+
 <div class="grid-row">
     <div class="col-xs-12 WFU-footer">This material is owned by Wake Forest University and is protected by U.S. copyright laws. All Rights Reserved.</div>
 </div>`;
 
-  return postProcessHtml(html, context);
+  return postProcessHtml(finalHtml, context);
 }
 
 /**
