@@ -330,14 +330,16 @@ export function formatWFUCourseWelcome(
       ? `Introduction to ${courseCode} ${courseTitle}`
       : `Introduction to ${courseTitle}`;
 
-  // Parse module list provided in this pasted format:
-  // "Module 1: Title"
+  // Expect lines like:
+  // "Module 1: Foundations of Organizational Resilience and Risk Strategy"
   const rawModuleLines = Array.isArray(context.moduleTitles)
     ? context.moduleTitles
     : [];
 
-  const parsedModules = rawModuleLines
-    .map((line) => {
+  type ParsedModule = { number: number; title: string };
+
+  const parsedModules: ParsedModule[] = rawModuleLines
+    .map<ParsedModule | null>((line) => {
       const match = line.match(/^Module\s+(\d+)\s*:\s*(.+)$/i);
       if (!match) return null;
       return {
@@ -345,7 +347,7 @@ export function formatWFUCourseWelcome(
         title: match[2].trim(),
       };
     })
-    .filter(Boolean)
+    .filter((m): m is ParsedModule => m !== null)
     .sort((a, b) => a.number - b.number);
 
   const modulesLinesHtml = parsedModules
@@ -355,7 +357,6 @@ export function formatWFUCourseWelcome(
     )
     .join("");
 
-  // Standard Module navigation intro
   const modulesIntro = `
                 <p>To begin your journey in this course, please visit the Modules page (linked in the left-hand navigation and below) and get acquainted with the following sections:</p>
                 <ul>
@@ -394,7 +395,6 @@ export function formatWFUCourseWelcome(
             ${htmlContent}
             ${modulesIntro}
         </div>
-
         ${modulesLinesHtml}
     </div>
 </div>
