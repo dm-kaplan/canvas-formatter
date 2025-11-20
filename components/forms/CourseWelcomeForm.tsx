@@ -1,6 +1,10 @@
 "use client";
 import React, { useState, useRef, FormEvent } from "react";
-import { formatContent, type TemplateType, type TemplateContext } from "@/lib/formatters";
+import {
+  formatContent,
+  type TemplateType,
+  type TemplateContext,
+} from "@/lib/formatters";
 
 export interface CourseWelcomeFormData {
   title: string;
@@ -17,7 +21,7 @@ interface CanvasModule {
   position: number;
 }
 
-// Kept to satisfy props from page.tsx, but we handle everything locally in the form.
+// Kept for consistency with page.tsx props, though we only really use isLoading/baseUrl.
 interface CourseWelcomeFormProps {
   isLoading?: boolean;
   baseUrl?: string;
@@ -30,10 +34,6 @@ interface CourseWelcomeFormProps {
 export default function CourseWelcomeForm({
   isLoading: isAppLoading = false,
   baseUrl = "",
-  courseId = "",
-  modules = [],
-  isLoadingModules = false,
-  onRefreshModules,
 }: CourseWelcomeFormProps) {
   const rawContentRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -48,15 +48,6 @@ export default function CourseWelcomeForm({
 
   // Module titles (one per line, 8 lines)
   const [moduleTitlesText, setModuleTitlesText] = useState("");
-
-  // NEW: course ID local state (so user can set the Canvas course ID explicitly)
-  const [localCourseId, setLocalCourseId] = useState(courseId || "");
-
-  // NEW: "Getting Started" module ID for the main "Module" link
-  const [gettingStartedModuleId, setGettingStartedModuleId] = useState("");
-
-  // NEW: module page IDs (one per line, 8 lines, aligned with module titles)
-  const [moduleIdsText, setModuleIdsText] = useState("");
 
   // Modal state for generated HTML
   const [generatedHtml, setGeneratedHtml] = useState("");
@@ -101,27 +92,18 @@ export default function CourseWelcomeForm({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    // Build arrays from multi-line inputs
+    // Build array from multi-line module titles
     const moduleTitles = moduleTitlesText
       .split("\n")
       .map((t) => t.trim())
       .filter(Boolean);
 
-    const modulePageIds = moduleIdsText
-      .split("\n")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    // Build context for the formatter
     const context: TemplateContext = {
       ...formData,
       rawContent: sanitizePlain(formData.rawContent),
       title: "Course Welcome",
       moduleTitles,
       baseUrl,
-      courseId: localCourseId || courseId, // prefer user input, fallback to prop
-      gettingStartedModuleId,
-      modulePageIds,
     };
 
     const finalHtml = formatContent(
@@ -186,53 +168,6 @@ export default function CourseWelcomeForm({
             />
           </div>
 
-          {/* NEW: Course ID */}
-          <div>
-            <label
-              htmlFor="courseIdInput"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Canvas Course ID *
-            </label>
-            <input
-              id="courseIdInput"
-              type="text"
-              value={localCourseId}
-              onChange={(e) => setLocalCourseId(e.target.value.trim())}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-              placeholder="77445"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              This is the numeric Canvas course ID used in URLs (e.g.,
-              /courses/77445/...).
-            </p>
-          </div>
-
-          {/* NEW: Getting Started Module ID */}
-          <div>
-            <label
-              htmlFor="gettingStartedModuleId"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Getting Started Module ID
-            </label>
-            <input
-              id="gettingStartedModuleId"
-              type="text"
-              value={gettingStartedModuleId}
-              onChange={(e) =>
-                setGettingStartedModuleId(e.target.value.trim())
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-              placeholder="258868"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Optional. If provided, the &quot;Module&quot; heading link will
-              point to this module in Canvas.
-            </p>
-          </div>
-
           {/* Module titles */}
           <div>
             <label
@@ -249,37 +184,12 @@ export default function CourseWelcomeForm({
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
               placeholder={
-                "Module 1 Title\nModule 2 Title\nModule 3 Title\nModule 4 Title\nModule 5 Title\nModule 6 Title\nModule 7 Title\nModule 8 Title"
+                "Foundations of Organizational Resilience and Risk Strategy\nIncident Detection and Executive Response Leadership\nCrisis Communication and Stakeholder Coordination\nBusiness Continuity Planning and Operational Recovery\nAI, Automation, and the Future of Incident Management\nRegulatory Compliance and Global Standards in Resilience\nEthics, Governance, and Executive Accountability\nReflection, Lessons Learned, and Capstone Simulation"
               }
             />
             <p className="text-xs text-gray-500 mt-1">
               Enter exactly 8 module titles, one per line. These will appear as
-              &quot;Module 1: Title&quot;–&quot;Module 8: Title&quot; links.
-            </p>
-          </div>
-
-          {/* NEW: Module page IDs */}
-          <div>
-            <label
-              htmlFor="moduleIdsText"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Module IDs (one per line, matching titles, 8 required) *
-            </label>
-            <textarea
-              id="moduleIdsText"
-              value={moduleIdsText}
-              onChange={(e) => setModuleIdsText(e.target.value)}
-              rows={8}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-canvas-blue"
-              placeholder={
-                "258871\n258872\n258873\n258874\n258875\n258876\n258877\n258878"
-              }
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter the Canvas module IDs that correspond to each module title
-              (one per line, same order).
+              &quot;Module 1: Title&quot;–&quot;Module 8: Title&quot;.
             </p>
           </div>
 
