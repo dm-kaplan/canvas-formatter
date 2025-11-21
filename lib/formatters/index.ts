@@ -136,54 +136,65 @@ export function wrapInWFUContainer(html: string): string {
 }
 
 /**
- * WFU SPS Syllabus summary / header block
- * Renders a simple syllabus summary header that matches WFU SPS design.
+ * WFU SPS Syllabus summary block — matches WFUSPS official syllabus format exactly.
  */
 export function formatWFUCourseSyllabus(
   content: string,
   context: TemplateContext = {}
 ): string {
   const courseName = context.courseName || context.title || "Course Name";
+
   const instructorName = context.instructorName || "Instructor Name";
   const instructorCredentials =
     context.instructorCredentials || "Adjunct Professor of Practice";
   const instructorEmail = context.instructorEmail || "";
   const syllabusFileName = context.syllabusFileName || "Syllabus.docx";
+
   const office =
     context.office ||
     'By appointment via Zoom &nbsp;<a href="https://wakeforest-university.zoom.us" target="_blank" rel="noopener">https://wakeforest-university.zoom.us</a>';
 
-  const hasCredentials = instructorCredentials.trim().length > 0;
-  const instructorLine = `&nbsp;${instructorName}${
-    hasCredentials ? ", " + instructorCredentials.trim() : ""
-  }`;
+  // Build instructor line:
+  const instructorLine = `${instructorName}, ${instructorCredentials}`;
 
-  // Optional: if you pass syllabusFileUrl in context, we’ll link the file name
+  // Build syllabus link if provided
   const syllabusLink =
     context.syllabusFileUrl && String(context.syllabusFileUrl).trim().length > 0
       ? `<a href="${context.syllabusFileUrl}" target="_blank" rel="noopener">${syllabusFileName}</a>`
       : syllabusFileName;
 
-  const html = `<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
+  const html = `
+<div class="WFU-SPS WFU-Container-Global WFU-LightMode-Text">
     <div class="grid-row">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding: 0px 0px 10px 0px;">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" 
+             style="padding: 0px 0px 10px 0px;">
             <div class="WFU-SubpageHeader WFU-SubpageHeroGettingStarted">&nbsp;
                 <div class="WFU-Banner-SchoolofProfessionalStudies">&nbsp;</div>
             </div>
         </div>
     </div>
+
     <div class="grid-row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <p class="WFU-SubpageHeader">${courseName}</p>
             <h2 class="WFU-SubpageSubheader">Syllabus</h2>
-            <p><strong>Instructor:&nbsp;&nbsp;<span> &nbsp; </span></strong>${instructorLine}<br /><strong></strong><strong>E-mail:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </strong><a href="mailto:${instructorEmail}">${instructorEmail}</a><strong><br /></strong><strong>Office:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong>${office}<strong></strong></p>
+
+            <p>
+                <strong>Instructor:&nbsp;&nbsp;<span>&nbsp;</span></strong>${instructorLine}<br />
+                <strong>E-mail:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong>
+                <a href="mailto:${instructorEmail}">${instructorEmail}</a><br />
+                <strong>Office:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong>${office}
+            </p>
+
             <p><strong>Course Syllabus:&nbsp;</strong>${syllabusLink}</p>
         </div>
     </div>
+
     <div class="grid-row">
         <div class="col-xs-12">&nbsp;</div>
     </div>
-</div>`;
+</div>
+`;
 
   return postProcessHtml(html, context);
 }
